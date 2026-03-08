@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.venv/
+
+# Database & Settings (Generated)
+database.db
+database.db-*
+app_settings.json
+
+# Logs
+*.log
+logs/
+
+# Generated Files
+access-qr.png
+access-info.txt
+qr-terminal.txt
+
+# OS Files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Backup Files
+*.backup
+*.bak
+*.backup.*
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Secrets (jika ada)
+.env
+*.key
+*.pem
+credentials.json
+
+# Temp Files
+tmp/
+temp/
+*.tmp

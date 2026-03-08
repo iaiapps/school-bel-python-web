@@ -290,10 +290,11 @@ def schedule():
         cur.execute("SELECT file_name FROM sounds ORDER BY id DESC")
         sounds = cur.fetchall()
 
-        # Get schedules grouped by category
+        # Get schedules filtered by active category
         cur.execute("""
             SELECT id, day_of_week, time, activity, sound_file, category
             FROM schedules
+            WHERE category = ?
             ORDER BY
               CASE day_of_week
                 WHEN 'Senin' THEN 1
@@ -305,7 +306,7 @@ def schedule():
                 WHEN 'Minggu' THEN 7
                 ELSE 8
               END, time
-        """)
+        """, (active_category,))
         schedule_list = cur.fetchall()
 
     return render_template("schedule.html", schedules=schedule_list, hari_ini=hari_ini, sounds=sounds, 

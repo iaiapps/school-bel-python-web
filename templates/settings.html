@@ -136,31 +136,16 @@
         <i class="fas fa-cog text-primary me-2"></i>Pengaturan Aplikasi
       </h3>
 
-      {% with messages = get_flashed_messages(with_categories=True) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div
-        class="alert alert-{{ category }} alert-dismissible fade show"
-        role="alert"
-      >
-        {{ message }}
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="alert"
-        ></button>
-      </div>
-      {% endfor %}
-  {% endif %}
-{% endwith %}
-
-      <div class="row">
-        <!-- Sidebar Menu -->
-        <div class="col-md-3 mb-4">
-          <div class="sidebar-card">
-            <div
-              class="nav flex-column nav-pills"
-              id="v-pills-tab"
+        {% with messages = get_flashed_messages(with_categories=True) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
               role="tablist"
             >
               <button

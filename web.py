@@ -18,6 +18,9 @@ from werkzeug.security import generate_password_hash
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# Define SOUNDS_PATH
+SOUNDS_PATH = Config.UPLOAD_FOLDER
+
 # Flask-Login setup
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -879,7 +882,7 @@ def api_get_sounds():
     """Get all sounds for dropdown"""
     with _connect() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id, name, file_name FROM sounds ORDER BY name")
+        cur.execute("SELECT id, name, file_name FROM sounds ORDER BY file_name")
         sounds = cur.fetchall()
     
     return jsonify([{
@@ -887,6 +890,174 @@ def api_get_sounds():
         'name': s[1],
         'file_name': s[2]
     } for s in sounds])
+
+# ==================== SOUNDS MANAGEMENT API ====================
+
+from sounds_manager import (
+    get_all_sounds, get_sound_by_id, add_sound, delete_sound, delete_sounds_bulk,
+    scan_sounds_folder, sync_sounds_with_folder, get_folder_structure, 
+    create_folder, get_folders
+)
+from werkzeug.utils import secure_filename
+import shutil
+
+@app.route("/sounds")
+@login_required
+def sounds_page():
+    """Manage sounds page"""
+    return render_template("sounds.html")
+
+@app.route("/api/sounds/scan", methods=["GET"])
+@login_required
+def api_scan_sounds():
+    """Scan sounds folder and return preview"""
+    result = sync_sounds_with_folder(delete_missing=False)
+    return jsonify(result)
+
+@app.route("/api/sounds/sync", methods=["POST"])
+@login_required
+def api_sync_sounds():
+    """Execute sync"""
+    data = request.get_json()
+    delete_missing = data.get('delete_missing', False)
+    
+    result = sync_sounds_with_folder(delete_missing=delete_missing)
+    
+    return jsonify({
+        'success': True,
+        'added': len(result['new']),
+        'removed': len(result['missing']),
+        'total': result['total']
+    })
+
+@app.route("/api/sounds/folders", methods=["GET"])
+@login_required
+def api_get_folders():
+    """Get list of folders"""
+    folders = get_folders()
+    return jsonify(folders)
+
+@app.route("/api/sounds/folder", methods=["POST"])
+@login_required
+def api_create_folder():
+    """Create new folder"""
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    
+    if not name:
+        return jsonify({'success': False, 'message': 'Folder name required'})
+    
+    success, path = create_folder(name)
+    
+    if success:
+        return jsonify({'success': True, 'path': path})
+    else:
+        return jsonify({'success': False, 'message': 'Folder already exists'})
+
+@app.route("/api/sounds/upload", methods=["POST"])
+@login_required
+def api_upload_sounds():
+    """Upload multiple sound files"""
+    folder = request.form.get('folder', 'root')
+    files = request.files.getlist('files')
+    
+    if not files:
+        return jsonify({'success': False, 'message': 'No files selected'})
+    
+    if len(files) > 50:
+        return jsonify({'success': False, 'message': 'Maximum 50 files at once'})
+    
+    uploaded = 0
+    errors = []
+    
+    # Determine target folder
+    target_folder = SOUNDS_PATH
+    if folder != 'root':
+        target_folder = os.path.join(SOUNDS_PATH, secure_filename(folder))
+        if not os.path.exists(target_folder):
+            os.makedirs(target_folder)
+    
+    for file in files:
+        try:
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                if filename.lower().endswith(('.mp3', '.wav')):
+                    filepath = os.path.join(target_folder, filename)
+                    file.save(filepath)
+                    
+                    # Add to database
+                    name = os.path.splitext(filename)[0]
+                    rel_path = os.path.join(folder, filename) if folder != 'root' else filename
+                    add_sound(name, rel_path)
+                    uploaded += 1
+        except Exception as e:
+            errors.append(f"{file.filename}: {str(e)}")
+    
+    return jsonify({
+        'success': True,
+        'uploaded': uploaded,
+        'errors': errors
+    })
+
+@app.route("/api/sounds/<int:sound_id>", methods=["DELETE"])
+@login_required
+def api_delete_sound(sound_id):
+    """Delete sound from database"""
+    success = delete_sound(sound_id)
+    return jsonify({'success': success})
+
+@app.route("/api/sounds/bulk-delete", methods=["POST"])
+@login_required
+def api_bulk_delete_sounds():
+    """Delete multiple sounds"""
+    data = request.get_json()
+    ids = data.get('ids', [])
+    
+    if not ids:
+        return jsonify({'success': False, 'message': 'No sounds selected'})
+    
+    count = delete_sounds_bulk(ids)
+    
+    return jsonify({
+        'success': True,
+        'deleted': count
+    })
+
+@app.route("/api/sounds/play/<int:sound_id>", methods=["POST"])
+@login_required
+def api_play_sound(sound_id):
+    """Play sound for testing"""
+    sound = get_sound_by_id(sound_id)
+    
+    if not sound:
+        return jsonify({'success': False, 'message': 'Sound not found'})
+    
+    file_path = os.path.join(SOUNDS_PATH, sound[2])
+    
+    if not os.path.exists(file_path):
+        return jsonify({'success': False, 'message': 'File not found'})
+    
+    try:
+        import subprocess
+        ext = os.path.splitext(file_path)[1].lower()
+        cmd = ['aplay', file_path] if ext == '.wav' else ['mpg123', '-q', file_path]
+        
+        subprocess.Popen(
+            cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        
+        return jsonify({'success': True, 'message': 'Playing sound'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route("/api/sounds/structure", methods=["GET"])
+@login_required
+def api_get_sounds_structure():
+    """Get folder structure with sounds"""
+    structure = get_folder_structure()
+    return jsonify(structure)
 
 def start_app():
     # init db jika dipanggil dari run.py pertama kali

@@ -1,279 +1,251 @@
 # 🔔 Aplikasi Bel Sekolah
 
-Aplikasi bel sekolah otomatis berbasis web untuk **Raspberry Pi** dengan support playlist murottal.
+Sistem bel sekolah otomatis untuk **Raspberry Pi** dengan web interface, support playlist murottal, dan multi-folder sounds.
+
+![Version](https://img.shields.io/badge/version-3.0-orange)
+![Python](https://img.shields.io/badge/python-3.8+-blue)
+![Platform](https://img.shields.io/badge/platform-Raspberry%20Pi-green)
+
+---
 
 ## ✨ Fitur Utama
 
 ### 🎵 Audio System
-- ✅ **Support MP3 & WAV** - Gunakan file audio format apapun
-- ✅ **Ringan** - Tidak pakai pygame, hanya mpg123 (150KB)
-- ✅ **Playlist Murottal** - Putar banyak file berurutan
-- ✅ **Interrupt** - Bel masuk otomatis stop murottal
-- ✅ **Manual Play & Stop** - Kontrol dari web
+- **MP3 & WAV Support** - Menggunakan mpg123/aplay (ringan)
+- **Subfolder Support** - Organisir sounds dalam folder (bel/, murottal/, dll)
+- **Playlist** - Play multiple files berurutan
+- **Auto-Sync** - Scan folder & update database otomatis
+- **Interrupt** - Bel prioritas lebih tinggi dari murottal
 
 ### 📅 Scheduler
-- ✅ **Jadwal Otomatis** - Sesuaikan dengan jadwal sekolah
-- ✅ **Multi Kategori** - Normal, Ujian, Puasa, dll
-- ✅ **Interrupt Priority** - Bel lebih prioritas dari murottal
+- **Jadwal Otomatis** - Sesuai jadwal sekolah
+- **Multi Kategori** - Normal, Ujian, Puasa
+- **Priority System** - Interrupt murottal saat bel masuk
 
 ### 🌐 Web Interface
-- ✅ **Akses dari HP** - Kontrol via WiFi lokal
-- ✅ **Responsive** - Tampilan mobile-friendly
-- ✅ **Easy Upload** - Upload sound langsung dari web
-- ✅ **History Log** - Lihat riwayat bel dimainkan
+- **Responsive** - Optimal untuk HP
+- **Manage Sounds** - Upload, sync, organize dalam folder
+- **Bulk Upload** - Drag-drop multiple files
+- **Playlist Manager** - Kelola urutan murottal
+- **Real-time Control** - Play/stop manual
 
 ### 🚀 Deployment
-- ✅ **1-Click Install** - Setup otomatis dengan systemd
-- ✅ **Auto Start** - Nyala otomatis saat boot
-- ✅ **QR Code** - Scan untuk akses cepat
-- ✅ **No Hostname Change** - Aman untuk sistem
+- **One-Click Install** - Setup otomatis
+- **Auto-Start** - Nyala otomatis saat boot
+- **Systemd Service** - Production-ready
+- **No Hostname Change** - Aman untuk sistem
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Install (5 menit)
+### 1. Install (5 Menit)
 
 ```bash
-cd /home/pi/bel_sekolah
+cd ~
+git clone https://github.com/iaiapps/school-bel-python-web.git bel
+cd bel
 sudo ./install.sh
 ```
 
-**Tunggu sampai selesai** - Installer akan:
-- Install dependencies (mpg123, alsa-utils)
-- Setup virtual environment
-- Install Python packages
-- Initialize database
-- Create systemd service
-- Generate QR code
+### 2. Akses
 
-### 2. Akses dari HP
-
-**Cara 1: Scan QR Code**
-- Setelah install, QR code muncul di terminal
-- Scan dengan HP → Langsung terbuka
-
-**Cara 2: Manual**
-```bash
-./manage.sh info
-# Lihat IP address: http://192.168.x.x:5000
+**Dari HP/Laptop:**
+```
+http://[IP-RASPBERRY-PI]:5000
 ```
 
-**Login Default:**
+**Login:**
 - Username: `admin`
 - Password: `admin123`
 
+### 3. Setup Awal
+
+1. **Upload Sounds** - Menu Upload atau Manage Sounds
+2. **Buat Playlist** - Menu Playlist (untuk murottal)
+3. **Buat Jadwal** - Menu Jadwal Harian
+4. **Test Audio** - Settings → Audio → Test
+
 ---
 
-## 📱 Cara Pakai
+## 📱 Menu Web
 
-### Upload Sound (Pertama Kali)
+| Menu | Fungsi |
+|------|--------|
+| **Dashboard** | Overview, quick actions, status |
+| **Upload Sound** | Upload single file |
+| **Manage Sounds** | 🆕 Kelola folder, bulk upload, sync |
+| **Playlist** | Playlist untuk murottal/audio sequence |
+| **Jadwal Harian** | Atur jadwal bel otomatis |
+| **Riwayat** | Log aktivitas |
+| **Settings** | Audio, network, security |
 
-1. **Menu Upload Sound**
-2. Upload file MP3/WAV (bell.mp3, murottal01.mp3, dll)
-3. Beri nama yang mudah dikenali
+---
+
+## 🎯 Cara Pakai
+
+### Upload Sounds (Banyak File)
+
+**Cara 1: Via Web (Manage Sounds)**
+1. Menu **Manage Sounds**
+2. **Upload** → Pilih folder (bel/, murottal/, dll)
+3. Drag-drop multiple files (max 50)
+4. Upload
+
+**Cara 2: Via SCP/USB + Sync**
+```bash
+# Copy file ke folder
+scp *.mp3 admin@[IP]:/home/admin/bel/sounds/bel/
+
+# Sync via web
+Manage Sounds → Sync Folder → Preview → Sync Now
+```
 
 ### Buat Playlist Murottal
 
 1. **Menu Playlist** → **Buat Playlist Baru**
-2. Nama: "Murottal Pagi", Deskripsi: "Murottal untuk pagi"
-3. **Kelola** → Tambah file satu per satu
-4. Urutkan sesuai keinginan (Al-Fatihah, Yasin, dll)
+2. Nama: "Murottal Pagi"
+3. **Kelola** → Tambah file dengan urutan
+4. **Save**
 
-### Buat Jadwal Bel
+### Buat Jadwal
 
-1. **Menu Jadwal Harian** → **Tambah Jadwal**
-2. Pilih: Hari, Waktu, Nama Kegiatan
+1. **Jadwal Harian** → **Tambah Jadwal**
+2. Pilih: Hari, Waktu, Kegiatan
 3. **Pilih Sound**:
-   - 🔊 **Single File**: bell.mp3 (untuk bel pendek)
-   - 📋 **Playlist**: Murottal Pagi (untuk murottal panjang)
-4. Simpan
+   - 🔊 Single file: `bel/bell.mp3`
+   - 📋 Playlist: `Murottal Pagi`
+4. **Simpan**
 
-### Test Audio
+### Sync Sounds
 
-1. **Menu Pengaturan** → Tab **Audio**
-2. Atur volume slider
-3. Klik **Test Audio**
+Jika ada perubahan di folder `sounds/`:
+
+1. **Manage Sounds** → **Sync Folder**
+2. Lihat preview (new, missing, unchanged)
+3. ✅ Centang "Hapus file yang tidak ada"
+4. **Sync Now**
 
 ---
 
-## 🎮 Command Management
+## 📂 Struktur Folder
+
+```
+bel/
+├── sounds/              # Audio files
+│   ├── bell.mp3        # Root level
+│   ├── bel/            # Bell sounds
+│   │   ├── bell1.mp3
+│   │   └── islamic.mp3
+│   ├── murottal/       # Murottal files
+│   │   ├── 01-Alfatihah.mp3
+│   │   └── 02-Al-Ikhlas.mp3
+│   └── doa/            # Doa files
+├── install.sh          # Installer
+├── manage.sh           # Management
+├── cleanup.sh          # Cleanup/Uninstall
+└── ...
+```
+
+---
+
+## 🔧 Command Management
 
 ### manage.sh
 
 ```bash
-./manage.sh start      # Start aplikasi (manual)
-./manage.sh stop       # Stop aplikasi
-./manage.sh restart    # Restart aplikasi
-./manage.sh status     # Cek status
-./manage.sh info       # Info akses & QR code
-./manage.sh logs       # Lihat log
+./manage.sh start      # Start manual
+./manage.sh stop       # Stop
+./manage.sh restart    # Restart
+./manage.sh status     # Status
+./manage.sh info       # Info akses & QR
+./manage.sh logs       # Logs
 ```
 
-### systemctl (Production)
+### systemctl (Service)
 
 ```bash
-sudo systemctl status bel-sekolah    # Status
-sudo systemctl restart bel-sekolah   # Restart
-sudo systemctl stop bel-sekolah      # Stop
-sudo journalctl -u bel-sekolah -f    # Live logs
+sudo systemctl status bel-sekolah
+sudo systemctl restart bel-sekolah
+sudo journalctl -u bel-sekolah -f
 ```
-
----
-
-## 📊 Struktur Database
-
-### Tables:
-- **sounds** - File audio yang diupload
-- **playlists** - Playlist untuk murottal
-- **playlist_items** - Urutan file dalam playlist
-- **schedules** - Jadwal bel
-- **categories** - Kategori jadwal (normal, ujian, puasa)
-- **history** - Log aktivitas
-- **users** - User login
-- **app_settings** - Pengaturan aplikasi
-
-### Playlist Format:
-Di database `schedules.sound_file`:
-- Single file: `bell.mp3`
-- Playlist: `playlist:5` (ID playlist)
 
 ---
 
 ## ⚙️ Settings
 
-### Audio Settings
-- **Output**: Auto / Headphone / HDMI
+### Audio
 - **Volume**: 0-100%
-- **Apply**: Otomatis saat save
+- **Output**: Auto/Headphone/HDMI
+- **Auto-restore**: Volume tersimpan saat reboot
 
-### Network Settings
+### Network
 - **Port**: Default 5000
-- **Hostname**: Menggunakan hostname asli Raspberry Pi (tidak diubah)
-- **Static IP**: Opsional
+- **Hostname**: Menggunakan hostname asli RPi
+- **Access**: Via IP atau hostname.local
 
 ### Security
 - **Ganti Password**: Settings → Security
 - **Session**: 24 jam
-- **Login Required**: Semua halaman butuh login
 
 ---
 
-## 🔧 Troubleshooting
+## 🔍 Troubleshooting
 
 ### Audio tidak keluar
 
 ```bash
-# Cek volume
-alsamixer
+# Install mpg123 (untuk MP3)
+sudo apt install mpg123
 
 # Test manual
-mpg123 -q sounds/bell.mp3
-aplay sounds/bell.wav
+mpg123 -q sounds/bel/bell.mp3
+
+# Cek volume
+alsamixer
 
 # Restart service
 sudo systemctl restart bel-sekolah
 ```
 
-### Tidak bisa akses dari HP
-
-1. **Cek WiFi**: HP dan Raspberry Pi di jaringan sama
-2. **Cek IP**: `hostname -I`
-3. **Cek Service**: `sudo systemctl status bel-sekolah`
-4. **Cek Firewall**: `sudo ufw allow 5000`
-
-### Service error
+### Tidak bisa akses web
 
 ```bash
-# Lihat log
-sudo journalctl -u bel-sekolah -n 50
+# Cek service
+sudo systemctl status bel-sekolah
 
-# Re-install
-sudo ./cleanup.sh
-sudo ./install.sh
+# Cek IP
+hostname -I
+
+# Cek firewall
+sudo ufw allow 5000
 ```
 
 ### Database error
 
 ```bash
-# Reset database (HAPUS SEMUA DATA!)
+# Backup
 cp database.db database.db.backup
+
+# Reset
 rm database.db
-python3 -c "from database import init_db; init_db()"
+sudo systemctl restart bel-sekolah
 ```
 
 ---
 
-## 📁 Struktur File
+## 📊 Database Schema
 
-```
-bel_sekolah/
-├── install.sh          ⭐ Installer otomatis
-├── manage.sh           ⭐ Management script
-├── cleanup.sh          ⭐ Cleanup untuk fresh install
-├── uninstall.sh        ⭐ Uninstall
-├── run.py              Entry point aplikasi
-├── web.py              Flask web server
-├── core.py             Scheduler & audio player
-├── database.py         Database functions
-├── settings.py         Settings manager
-├── config.py           Configuration
-├── requirements.txt    Python dependencies
-├── database.db         SQLite database (PENTING!)
-├── sounds/             File audio MP3/WAV
-├── templates/          HTML templates
-└── static/             CSS/JS assets
-```
-
----
-
-## 🔐 Security
-
-### Default Credentials
-- **Username**: admin
-- **Password**: admin123
-
-### ⚠️ PENTING!
-**Ganti password setelah install pertama kali!**
-
-### Network Security
-- **Bind Address**: 0.0.0.0 (semua interface)
-- **Port**: 5000 (configurable)
-- **HTTPS**: Belum (untuk lokal network)
-- **Recommendation**: Gunakan WiFi dengan password
-
----
-
-## 📦 Backup & Restore
-
-### Backup Data Penting
-
-```bash
-# Backup database
-cp database.db database.db.backup.$(date +%Y%m%d)
-
-# Backup sounds
-tar -czf sounds.backup.$(date +%Y%m%d).tar.gz sounds/
-
-# Backup semua settings
-./manage.sh info > system.info.txt
-```
-
-### Restore
-
-```bash
-# Stop service
-sudo systemctl stop bel-sekolah
-
-# Restore database
-cp database.db.backup database.db
-
-# Restore sounds
-tar -xzf sounds.backup.tar.gz -C .
-
-# Start service
-sudo systemctl start bel-sekolah
-```
+| Table | Fungsi |
+|-------|--------|
+| `sounds` | File audio (name, file_path) |
+| `playlists` | Playlist header |
+| `playlist_items` | Urutan file dalam playlist |
+| `schedules` | Jadwal bel |
+| `categories` | Kategori (normal, ujian, puasa) |
+| `history` | Log playback |
+| `users` | User login |
+| `app_settings` | Pengaturan aplikasi |
 
 ---
 
@@ -281,106 +253,77 @@ sudo systemctl start bel-sekolah
 
 ### Requirements
 - Python 3.8+
-- Raspberry Pi OS (32/64 bit)
-- mpg123
-- alsa-utils
+- Raspberry Pi OS
+- mpg123, alsa-utils
 
-### Setup Development
+### Setup Dev
 
 ```bash
-# Install dependencies
-sudo apt install mpg123 alsa-utils python3-venv
-
-# Create venv
 python3 -m venv venv
 source venv/bin/activate
-
-# Install packages
 pip install -r requirements.txt
-
-# Run
 python3 run.py
 ```
 
-### Testing Audio
+### Testing
 
 ```bash
-# Test dari command line
+# Test audio
 mpg123 -q sounds/test.mp3
 
 # Test API
-curl -X POST http://localhost:5000/api/test-audio
+curl http://localhost:5000/api/core-status
 ```
 
 ---
 
 ## 📋 Changelog
 
-### Version 3.0 (Current)
-- ✅ Hapus pygame, ganti mpg123/aplay
-- ✅ Playlist system untuk murottal
-- ✅ Settings pakai database (bukan JSON)
-- ✅ Stop audio manual dari web
-- ✅ No hostname change (aman)
-- ✅ Hapus migrations (fresh install)
+### v3.0 (Current)
+- ✅ Subfolder support untuk sounds
+- ✅ Manage Sounds UI (bulk upload, sync)
+- ✅ Playlist system
+- ✅ Settings via database
+- ✅ No pygame (mpg123/aplay)
+- ✅ Responsive mobile UI
+- ✅ Auto-sync sounds
 
-### Version 2.0
+### v2.0
 - Playlist support
-- Multi category
+- Multi-category schedules
 - Web interface improvement
 
-### Version 1.0
+### v1.0
 - Basic scheduler
 - Single file play
-- Web interface
 
 ---
 
-## 💡 Tips & Best Practices
+## 💡 Tips
 
-### Audio
-1. **Gunakan MP3** untuk file kecil & kualitas baik
-2. **Normalize volume** semua file sebelum upload
-3. **Test dulu** sebelum buat jadwal
-
-### Playlist
-1. **Beri nama jelas**: "Murottal Pagi", "Murottal Sore"
-2. **Urutkan file**: 01-Alfatihah.mp3, 02-Al-Ikhlas.mp3
-3. **Test playlist**: Pastikan urutan benar
-
-### Schedule
-1. **Backup jadwal** sebelum edit besar
-2. **Test interrupt**: Pastikan bel prioritas tinggi
-3. **Kategori**: Pakai untuk jadwal khusus (ujian, puasa)
-
-### Maintenance
-1. **Backup rutin**: Database & sounds
-2. **Cek log**: Minimal sekali seminggu
-3. **Update**: Backup dulu sebelum update
-
----
-
-## 🤝 Support
-
-### Informasi
-- **Version**: 3.0
-- **Platform**: Raspberry Pi (3B+, 4, 5)
-- **OS**: Raspberry Pi OS
-- **Python**: 3.8+
-
-### Kontak
-Untuk pertanyaan atau issue, silakan hubungi tim IT sekolah.
+1. **Organisir sounds dalam folder** - bel/, murottal/, doa/
+2. **Gunakan playlist untuk murottal** - Lebih mudah manage
+3. **Backup database rutin** - `cp database.db backup/`
+4. **Test sebelum schedule** - Play manual dulu
+5. **Sync setelah copy file** - Manage Sounds → Sync
 
 ---
 
 ## 📄 License
 
-Aplikasi ini dibuat khusus untuk **SDIT Harapan Umat Jember**.
+Aplikasi ini dibuat untuk **SDIT Harapan Umat Jember**.
 
 ---
 
-## 🙏 Credits
+## 🤝 Support
 
-Developed with ❤️ for Islamic Education
+- **Version**: 3.0
+- **Platform**: Raspberry Pi 3B+/4/5
+- **OS**: Raspberry Pi OS
+- **Python**: 3.8+
 
-**Version 3.0** | **2026**
+**GitHub**: https://github.com/iaiapps/school-bel-python-web
+
+---
+
+**Developed with ❤️ | 2026**

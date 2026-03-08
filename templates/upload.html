@@ -23,14 +23,14 @@
       </div>
     </div>
 
-    <div class="mb-3">
-      <a href="/" class="text-decoration-none text-dark"><i class="fas fa-arrow-left"></i> Kembali</a>
+    <!-- Back Button -->
+    <div class="mb-4">
+      <a href="/" class="quick-action-btn text-decoration-none">
+        <i class="fas fa-arrow-left"></i> Kembali
+      </a>
     </div>
 
     <div class="dashboard-card mb-3">
-      <p class="mb-3 fs-4 text-center fw-bold"><i class="fas fa-upload me-2"></i>Upload Sound</p>
-      <hr />
-
       {% with messages = get_flashed_messages(with_categories=True) %}
       {% if messages %}
       {% for category, message in messages %}

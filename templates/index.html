@@ -145,9 +145,9 @@
             {% for item in jadwal %}
             <div class="schedule-item">
               <div class="d-flex justify-content-between align-items-center flex-column flex-sm-row">
-                <div class="mb-2 mb-sm-0">
+                <div class="mb-2 mb-sm-0 d-flex align-items-center flex-wrap">
                   <span class="time-badge">{{ item[0] }}</span>
-                  <span class="ms-2 fw-bold">{{ item[1] }}</span>
+                  <span class="fw-bold">{{ item[1] }}</span>
                 </div>
                 <small class="text-muted">{{ item[2] }}</small>
               </div>

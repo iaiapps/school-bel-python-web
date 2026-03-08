@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ff5722" />
     <title>Login - Aplikasi Bel Sekolah</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
@@ -14,11 +15,12 @@
     />
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
         .login-card {
             background: white;
@@ -26,53 +28,66 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             max-width: 400px;
             width: 100%;
-            padding: 40px;
+            padding: 30px;
         }
         .login-header {
             text-align: center;
             margin-bottom: 30px;
         }
         .login-header i {
-            font-size: 60px;
-            color: #667eea;
+            font-size: 50px;
+            color: #ff5722;
             margin-bottom: 15px;
         }
         .login-header h3 {
             color: #333;
             font-weight: bold;
+            font-size: 1.5rem;
         }
         .login-header p {
             color: #666;
+            font-size: 13px;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #555;
             font-size: 14px;
+            margin-bottom: 8px;
         }
         .form-control {
             border-radius: 10px;
-            padding: 12px;
+            padding: 12px 15px;
             border: 2px solid #e0e0e0;
+            font-size: 15px;
         }
         .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            border-color: #ff5722;
+            box-shadow: 0 0 0 0.2rem rgba(255, 87, 34, 0.25);
         }
         .btn-login {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
             border: none;
             border-radius: 10px;
             padding: 12px;
             color: white;
             font-weight: bold;
+            font-size: 16px;
             width: 100%;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
+        }
+        .btn-login:active {
+            transform: translateY(0);
         }
         .input-group-text {
             background-color: #f8f9fa;
             border: 2px solid #e0e0e0;
             border-right: none;
             border-radius: 10px 0 0 10px;
+            color: #ff5722;
         }
         .input-group .form-control {
             border-left: none;
@@ -80,6 +95,41 @@
         }
         .alert {
             border-radius: 10px;
+            font-size: 14px;
+        }
+        .default-credentials {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .default-credentials small {
+            color: #888;
+            font-size: 12px;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+            .login-card {
+                padding: 25px 20px;
+            }
+            .login-header i {
+                font-size: 40px;
+            }
+            .login-header h3 {
+                font-size: 1.3rem;
+            }
+            .form-control {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+            .btn-login {
+                padding: 12px;
+                font-size: 15px;
+            }
         }
     </style>
 </head>
@@ -117,6 +167,7 @@
                         placeholder="Masukkan username"
                         required
                         autofocus
+                        autocomplete="username"
                     />
                 </div>
             </div>
@@ -134,6 +185,7 @@
                         name="password"
                         placeholder="Masukkan password"
                         required
+                        autocomplete="current-password"
                     />
                 </div>
             </div>
@@ -143,9 +195,9 @@
             </button>
         </form>
 
-        <div class="text-center mt-3">
+        <div class="default-credentials">
             <small class="text-muted">
-                Default: admin / admin123
+                <i class="fas fa-info-circle"></i> Default: <strong>admin</strong> / <strong>admin123</strong>
             </small>
         </div>
     </div>

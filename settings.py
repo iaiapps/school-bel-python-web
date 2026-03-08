@@ -123,12 +123,21 @@ class SettingsManager:
         try:
             url = self.get_access_url()
             import subprocess
+            import os
+            
+            # Generate ke folder aplikasi
+            app_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            qr_path = os.path.join(app_dir, output_file)
+            
             result = subprocess.run(
-                ['qrencode', '-o', output_file, '-s', '10', '-l', 'H', url],
+                ['qrencode', '-o', qr_path, '-s', '10', '-l', 'H', url],
                 capture_output=True,
                 text=True
             )
+            
             if result.returncode == 0:
+                # Set permission agar bisa dibaca web server
+                os.chmod(qr_path, 0o644)
                 return True, output_file
             else:
                 return False, result.stderr

@@ -141,6 +141,37 @@
     <script>
     let currentPlaylistId = null;
 
+    // Load on page ready
+    document.addEventListener('DOMContentLoaded', () => {
+        // Auto-load all playlist items preview
+        loadAllPlaylistPreviews();
+    });
+
+    // Load all playlist previews on page load
+    async function loadAllPlaylistPreviews() {
+        try {
+            const res = await fetch('/api/playlists');
+            const playlists = await res.json();
+            
+            for (const playlist of playlists) {
+                const previewDiv = document.getElementById('items-' + playlist.id);
+                if (previewDiv) {
+                    const itemsRes = await fetch(`/api/playlists/${playlist.id}/items`);
+                    const items = await itemsRes.json();
+                    if (items.length > 0) {
+                        previewDiv.innerHTML = items.map((item, i) => 
+                            '<div class="text-truncate small"><strong>' + (i+1) + '.</strong> ' + item.name + '</div>'
+                        ).join('');
+                    } else {
+                        previewDiv.innerHTML = '<small class="text-muted">Belum ada file</small>';
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Error loading previews:', err);
+        }
+    }
+
     document.getElementById('createPlaylistForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('playlistName').value;

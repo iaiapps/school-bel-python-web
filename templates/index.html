@@ -32,64 +32,63 @@
       </div>
     </div>
 
-    <div class="container main-container">
-      <!-- Category Switcher -->
-      <div class="card mb-3">
-        <div class="card-body">
-          <div
-            class="d-flex justify-content-between align-items-center flex-wrap"
-          >
-            <div>
-              <span class="me-2"><i class="fas fa-tags"></i> Kategori:</span>
-              <br />
-              <div class="btn-group" role="group">
-                {% for cat in categories %}
-                <button
-                  type="button"
-                  class="btn btn-sm category-btn {% if cat[1] == active_category %}active{% endif %}"
-                  style="background-color: {{ cat[3] }}; border-color: {{ cat[3] }}; color: white;"
-                  onclick="switchCategory('{{ cat[1] }}')"
-                  id="cat-btn-{{ cat[1] }}"
-                >
-                  {{ cat[1]|upper }}
-                </button>
-                {% endfor %}
-              </div>
+      <div class="container main-container">
+        
+        <!-- Status Card -->
+        <div class="status-card mb-3">
+          <div class="row align-items-center">
+            <p class="mb-2 fs-3 text-center">SDIT HARAPAN UMAT JEMBER</p>
+            <hr />
+            <div class="col-md-6 p-3">
+              <p class="mb-1">Waktu System</p>
+              <div class="current-time" id="currentTime">--:--:--</div>
+              <div class="current-date" id="currentDate">--</div>
             </div>
-            <small class="text-muted">Klik untuk memilih kategori</small>
-          </div>
-        </div>
-      </div>
-
-      <!-- Status Card -->
-      <div class="status-card">
-        <div class="row align-items-center">
-          <p class="mb-2 fs-3 text-center">SDIT HARAPAN UMAT JEMBER</p>
-          <hr />
-          <div class="col-md-6 p-3">
-            <p class="mb-1">Waktu System</p>
-            <div class="current-time" id="currentTime">--:--:--</div>
-            <div class="current-date" id="currentDate">--</div>
-          </div>
-          <div class="col-md-6 p-3">
-            <p class="mb-2">
-              Status System: <strong id="coreStatus">Memeriksa...</strong>
-            </p>
-            <div class="mb-2">
-              <p class="mb-0">
-                Bel berikutnya: <strong id="nextBell">Memuat...</strong>
+            <div class="col-md-6 p-3">
+              <p class="mb-2">
+                Status System: <strong id="coreStatus">Memeriksa...</strong>
               </p>
+              <div class="mb-2">
+                <p class="mb-0">
+                  Bel berikutnya: <strong id="nextBell">Memuat...</strong>
+                </p>
+              </div>
+              <button
+                class="quick-action-btn mt-3"
+                onclick="toggleCore()"
+                id="toggleBtn"
+              >
+                <i class="fas fa-power-off"></i> Matikan
+              </button>
             </div>
-            <button
-              class="quick-action-btn mt-3"
-              onclick="toggleCore()"
-              id="toggleBtn"
-            >
-              <i class="fas fa-power-off"></i> Matikan
-            </button>
           </div>
         </div>
-      </div>
+        
+        <!-- Category Switcher -->
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+              <div>
+                <span class="me-2"><i class="fas fa-tags"></i> Kategori:</span>
+                <br />
+                <div class="btn-group" role="group">
+                  {% for cat in categories %}
+                  <button
+                    type="button"
+                    class="btn btn-sm category-btn {% if cat[1] == active_category %}active{% endif %}"
+                    style="background-color: {{ cat[3] }}; border-color: {{ cat[3] }}; color: white;"
+                    onclick="switchCategory('{{ cat[1] }}')"
+                    id="cat-btn-{{ cat[1] }}"
+                  >
+                    {{ cat[1]|upper }}
+                  </button>
+                  {% endfor %}
+                </div>
+              </div>
+              <small class="text-muted">Klik untuk memilih kategori</small>
+            </div>
+          </div>
+        </div>
 
       <div class="dashboard-card">
         <div class="menu-icon"><i class="fas fa-music"></i></div>

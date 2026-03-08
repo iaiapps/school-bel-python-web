@@ -396,6 +396,21 @@ def delete_schedule(schedule_id):
     flash("Jadwal berhasil dihapus.", "success")
     return redirect(url_for("schedule"))
 
+# ───── RESET SEMUA JADWAL ─────
+@app.route("/reset-schedule", methods=["POST"])
+@login_required
+def reset_schedule():
+    """Reset ALL schedules (delete all)"""
+    try:
+        with _connect() as conn:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM schedules")
+            conn.commit()
+        flash("Semua jadwal berhasil direset.", "success")
+    except Exception as e:
+        flash(f"Gagal reset jadwal: {str(e)}", "danger")
+    return redirect(url_for("schedule"))
+
 # ───── IMPORT TEMPLATE JADWAL ─────
 @app.route("/import-schedule", methods=["POST"])
 @login_required
@@ -423,52 +438,52 @@ def import_schedule():
     
     # Jadwal SELASA/RABU/KAMIS (identik)
     hari_antara = [
-        ("Selasa", "07:15", "SHOLAT DHUHA DAN DZIKIR PAGI", default_sound, "normal"),
+        ("Selasa", "07:15", "SHOLAT DHUHA", default_sound, "normal"),
         ("Selasa", "07:30", "BTAQ", default_sound, "normal"),
-        ("Selasa", "08:00", "IPAS", default_sound, "normal"),
-        ("Selasa", "08:30", "IPAS", default_sound, "normal"),
-        ("Selasa", "09:00", "B.INGGRIS", default_sound, "normal"),
-        ("Selasa", "09:30", "B.INGGRIS", default_sound, "normal"),
+        ("Selasa", "08:00", "MAPEL I", default_sound, "normal"),
+        ("Selasa", "08:30", "MAPEL II", default_sound, "normal"),
+        ("Selasa", "09:00", "MAPEL III", default_sound, "normal"),
+        ("Selasa", "09:30", "MAPEL IV", default_sound, "normal"),
         ("Selasa", "10:00", "ISTIRAHAT I", default_sound, "normal"),
-        ("Selasa", "10:15", "TAHFIDZ", default_sound, "normal"),
-        ("Selasa", "10:45", "TAHFIDZ", default_sound, "normal"),
+        ("Selasa", "10:15", "MAPEL V", default_sound, "normal"),
+        ("Selasa", "10:45", "MAPEL VI", default_sound, "normal"),
         ("Selasa", "11:15", "MAKAN SIANG, SHOLAT, ISTIRAHAT II", default_sound, "normal"),
-        ("Selasa", "12:25", "SCIENCE", default_sound, "normal"),
-        ("Selasa", "12:55", "SCIENCE", default_sound, "normal"),
+        ("Selasa", "12:25", "MAPEL VII", default_sound, "normal"),
+        ("Selasa", "12:55", "MAPEL VIII", default_sound, "normal"),
         ("Selasa", "13:25", "ISTIRAHAT III", default_sound, "normal"),
-        ("Selasa", "13:40", "SDB", default_sound, "normal"),
-        ("Selasa", "14:10", "SDB", default_sound, "normal"),
+        ("Selasa", "13:40", "MAPEL IX", default_sound, "normal"),
+        ("Selasa", "14:10", "MAPEL X", default_sound, "normal"),
         ("Selasa", "15:00", "SHOLAT ASAR BERJAMA'AH DAN PULANG", default_sound, "normal"),
     ]
     
     # Jadwal lengkap
     schedules_data = [
         # SENIN
-        ("Senin", "07:15", "SHOLAT DHUHA DAN DZIKIR PAGI", default_sound, "normal"),
+        ("Senin", "07:15", "SHOLAT DHUHA", default_sound, "normal"),
         ("Senin", "07:30", "APEL PAGI", default_sound, "normal"),
         ("Senin", "08:00", "BTAQ", default_sound, "normal"),
         ("Senin", "08:30", "BINA KELAS", default_sound, "normal"),
-        ("Senin", "09:00", "MTK", default_sound, "normal"),
-        ("Senin", "09:30", "MTK", default_sound, "normal"),
+        ("Senin", "09:00", "MAPEL I", default_sound, "normal"),
+        ("Senin", "09:30", "MAPEL II", default_sound, "normal"),
         ("Senin", "10:00", "ISTIRAHAT I", default_sound, "normal"),
-        ("Senin", "10:15", "B.ARAB", default_sound, "normal"),
-        ("Senin", "10:45", "B.ARAB", default_sound, "normal"),
+        ("Senin", "10:15", "MAPEL III", default_sound, "normal"),
+        ("Senin", "10:45", "MAPEL IV", default_sound, "normal"),
         ("Senin", "11:15", "MAKAN SIANG, SHOLAT, ISTIRAHAT II", default_sound, "normal"),
-        ("Senin", "12:25", "TAHFIDZ", default_sound, "normal"),
-        ("Senin", "12:55", "TAHFIDZ", default_sound, "normal"),
+        ("Senin", "12:25", "MAPEL V", default_sound, "normal"),
+        ("Senin", "12:55", "MAPEL VI", default_sound, "normal"),
         ("Senin", "13:25", "PULANG", default_sound, "normal"),
     ] + hari_antara + hari_antara + hari_antara + [
         # JUM'AT
-        ("Jumat", "07:15", "SHOLAT DHUHA DAN DZIKIR PAGI", default_sound, "normal"),
+        ("Jumat", "07:15", "SHOLAT DHUHA", default_sound, "normal"),
         ("Jumat", "07:30", "SENAM / BERKISAH", default_sound, "normal"),
         ("Jumat", "08:00", "BTAQ", default_sound, "normal"),
-        ("Jumat", "08:30", "MTK", default_sound, "normal"),
-        ("Jumat", "08:55", "MTK", default_sound, "normal"),
-        ("Jumat", "09:20", "SKI", default_sound, "normal"),
-        ("Jumat", "09:45", "AKHLAK", default_sound, "normal"),
+        ("Jumat", "08:30", "MAPEL I", default_sound, "normal"),
+        ("Jumat", "08:55", "MAPEL II", default_sound, "normal"),
+        ("Jumat", "09:20", "MAPEL III", default_sound, "normal"),
+        ("Jumat", "09:45", "MAPEL IV", default_sound, "normal"),
         ("Jumat", "10:10", "ISTIRAHAT", default_sound, "normal"),
-        ("Jumat", "10:25", "PJOK", default_sound, "normal"),
-        ("Jumat", "10:50", "PJOK", default_sound, "normal"),
+        ("Jumat", "10:25", "MAPEL V", default_sound, "normal"),
+        ("Jumat", "10:50", "MAPEL VI", default_sound, "normal"),
         ("Jumat", "11:15", "SHOLAT JUM'AT", default_sound, "normal"),
         ("Jumat", "12:00", "ISTIRAHAT", default_sound, "normal"),
         ("Jumat", "12:30", "PRAMUKA", default_sound, "normal"),

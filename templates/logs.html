@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,37 +23,49 @@
             white-space: pre-wrap;
             word-wrap: break-word;
         }
+
         .log-line {
             margin-bottom: 5px;
             padding: 5px;
             border-bottom: 1px solid #333;
         }
-        .log-error { color: #ff6b6b; }
-        .log-warning { color: #ffd93d; }
-        .log-info { color: #6bcb77; }
-        .log-debug { color: #4dabf7; }
+
+        .log-error {
+            color: #ff6b6b;
+        }
+
+        .log-warning {
+            color: #ffd93d;
+        }
+
+        .log-info {
+            color: #6bcb77;
+        }
+
+        .log-debug {
+            color: #4dabf7;
+        }
     </style>
 </head>
+
 <body>
-    <!-- Navigation -->
-    <div class="bg-white p-3 shadow-sm">
-        <div class="container d-flex justify-content-between align-items-center">
-            <div>
-                <a href="/" class="text-decoration-none text-dark">
-                    <i class="fas fa-arrow-left me-2"></i>Kembali
-                </a>
-                <a href="/settings" class="text-decoration-none text-dark ms-3">
-                    <i class="fas fa-cog me-2"></i>Settings
-                </a>
+    <div class="container main-container">
+        <div class="bg-white p-3 shadow-sm mb-4">
+            <div class="container d-flex justify-content-between align-items-center">
+                <p class="fs-5 mb-0 fw-bold">System Logs</p>
+                <div>
+                    <a href="/settings" class="btn btn-sm btn-outline-primary me-2"><i class="fas fa-cog"></i></a>
+                    <a href="/logout" class="btn btn-sm btn-outline-danger"><i class="fas fa-sign-out-alt"></i></a>
+                </div>
             </div>
-            <p class="fs-5 mb-0">System Logs</p>
-            <a href="/logout" class="btn btn-sm btn-outline-danger">
-                <i class="fas fa-sign-out-alt"></i> Logout
+        </div>
+
+        <!-- Back Button -->
+        <div class="mb-4">
+            <a href="/" class="quick-action-btn text-decoration-none">
+                <i class="fas fa-arrow-left"></i> Kembali
             </a>
         </div>
-    </div>
-
-    <div class="container main-container">
         <div class="row mb-3">
             <div class="col-md-8">
                 <h3><i class="fas fa-file-alt text-info me-2"></i>Logs Aplikasi</h3>
@@ -80,7 +93,8 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-check form-switch mt-2">
-                            <input class="form-check-input" type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
+                            <input class="form-check-input" type="checkbox" id="autoRefresh"
+                                onchange="toggleAutoRefresh()">
                             <label class="form-check-label" for="autoRefresh">Auto Refresh (5s)</label>
                         </div>
                     </div>
@@ -110,80 +124,81 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    let autoRefreshInterval = null;
+        let autoRefreshInterval = null;
 
-    document.addEventListener('DOMContentLoaded', () => {
-        refreshLogs();
-    });
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshLogs();
+        });
 
-    async function refreshLogs() {
-        const lines = document.getElementById('logLines').value;
-        const container = document.getElementById('logContainer');
-        
-        try {
-            const res = await fetch(`/api/logs?lines=${lines}`);
-            const data = await res.json();
-            
-            if (data.success) {
-                container.innerHTML = data.logs.split('\n').map(line => {
-                    let className = 'log-line';
-                    if (line.includes('ERROR') || line.includes('Failed')) className += ' log-error';
-                    else if (line.includes('WARNING') || line.includes('Warning')) className += ' log-warning';
-                    else if (line.includes('INFO')) className += ' log-info';
-                    else if (line.includes('DEBUG')) className += ' log-debug';
-                    return `<div class="${className}">${escapeHtml(line)}</div>`;
-                }).join('') || '<div class="text-muted">No logs</div>';
-                
-                // Scroll to bottom
-                container.scrollTop = container.scrollHeight;
-                
-                // Update timestamp
-                document.getElementById('lastUpdate').textContent = 'Last update: ' + new Date().toLocaleTimeString();
+        async function refreshLogs() {
+            const lines = document.getElementById('logLines').value;
+            const container = document.getElementById('logContainer');
+
+            try {
+                const res = await fetch(`/api/logs?lines=${lines}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    container.innerHTML = data.logs.split('\n').map(line => {
+                        let className = 'log-line';
+                        if (line.includes('ERROR') || line.includes('Failed')) className += ' log-error';
+                        else if (line.includes('WARNING') || line.includes('Warning')) className += ' log-warning';
+                        else if (line.includes('INFO')) className += ' log-info';
+                        else if (line.includes('DEBUG')) className += ' log-debug';
+                        return `<div class="${className}">${escapeHtml(line)}</div>`;
+                    }).join('') || '<div class="text-muted">No logs</div>';
+
+                    // Scroll to bottom
+                    container.scrollTop = container.scrollHeight;
+
+                    // Update timestamp
+                    document.getElementById('lastUpdate').textContent = 'Last update: ' + new Date().toLocaleTimeString();
+                } else {
+                    container.innerHTML = '<div class="text-danger">Error loading logs: ' + data.message + '</div>';
+                }
+            } catch (err) {
+                container.innerHTML = '<div class="text-danger">Error: ' + err + '</div>';
+            }
+        }
+
+        function toggleAutoRefresh() {
+            const checkbox = document.getElementById('autoRefresh');
+
+            if (checkbox.checked) {
+                autoRefreshInterval = setInterval(refreshLogs, 5000);
             } else {
-                container.innerHTML = '<div class="text-danger">Error loading logs: ' + data.message + '</div>';
-            }
-        } catch (err) {
-            container.innerHTML = '<div class="text-danger">Error: ' + err + '</div>';
-        }
-    }
-
-    function toggleAutoRefresh() {
-        const checkbox = document.getElementById('autoRefresh');
-        
-        if (checkbox.checked) {
-            autoRefreshInterval = setInterval(refreshLogs, 5000);
-        } else {
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
             }
         }
-    }
 
-    async function downloadLogs() {
-        const lines = document.getElementById('logLines').value;
-        
-        try {
-            const res = await fetch(`/api/logs/download?lines=${lines}`);
-            const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `bel-sekolah-logs-${new Date().toISOString().split('T')[0]}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-        } catch (err) {
-            alert('Error downloading logs: ' + err);
+        async function downloadLogs() {
+            const lines = document.getElementById('logLines').value;
+
+            try {
+                const res = await fetch(`/api/logs/download?lines=${lines}`);
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `bel-sekolah-logs-${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (err) {
+                alert('Error downloading logs: ' + err);
+            }
         }
-    }
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
     </script>
 </body>
+
 </html>

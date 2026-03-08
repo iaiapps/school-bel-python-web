@@ -121,9 +121,8 @@
           >
             <div>
               <span class="me-2"
-                ><i class="fas fa-tags"></i> Kategori:
-                <span class="text-muted"
-                  >Aktif:
+                >Kategori Aktif:
+                <span class="text-muted mt-3 d-inline-block">
                   <strong class="text-primary"
                     >{{ active_category|upper }}</strong
                   ></span
@@ -153,7 +152,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
           <p class="fs-5 mb-0">Jadwal Hari {{hari}}</p>
           <a href="/schedule" class="btn btn-sm btn-outline-primary">
-            <i class="fas fa-calendar-alt"></i> Kelola Jadwal
+            Kelola Jadwal
           </a>
         </div>
         <hr />
@@ -170,7 +169,6 @@
           </div>
           {% endfor %} {% else %}
           <div class="alert alert-warning">
-            <i class="fas fa-exclamation-triangle"></i>
             <strong>Tidak ada jadwal untuk hari ini.</strong><br />
             <small>
               Kategori aktif: <strong>{{ active_category|upper }}</strong> |

@@ -41,11 +41,9 @@
         </a>
       </div>
 
-      <div class="dashboard-card">
-        <h4 class="mb-4 fw-bold">
-          <i class="fas fa-upload me-2"></i>Upload Sound
-        </h4>
-
+      <div class="dashboard-card mb-3">
+        <p class="mb-3 fs-4 text-center fw-bold"><i class="fas fa-upload me-2"></i>Upload Sound</p>
+        <hr />
         {% with messages = get_flashed_messages(with_categories=true) %} {% if
         messages %} {% for category, message in messages %}
         <div class="alert alert-{{ category }} alert-dismissible fade show">
@@ -56,7 +54,7 @@
             data-bs-dismiss="alert"
           ></button>
         </div>
-        {% endfor %} {% endif %} {% endwith %}
+        {% endfor %}  {% endwith %}
 
         <form method="POST" enctype="multipart/form-data">
           <div class="mb-3">

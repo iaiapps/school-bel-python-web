@@ -118,17 +118,17 @@
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
                     </form>
                     <hr>
-                    <h6 class="mb-2">Tambah File</h6>
-                    <div class="input-group mb-3">
-                        <select class="form-select" id="addSoundSelect">
-                            <option value="">-- Pilih Sound --</option>
+                    
+                    <h6 class="mb-2">Tambah File ke Playlist</h6>
+                    <div class="mb-2">
+                        <label class="form-label small">Pilih Multiple Sounds (Ctrl+Click / Cmd+Click)</label>
+                        <select class="form-select" id="addSoundSelect" multiple size="5" style="height: 120px;">
                         </select>
-                        <button class="btn btn-success" type="button" onclick="addSoundToPlaylist()">
-                            <i class="fas fa-plus"></i> Tambah
-                        </button>
+                        <small class="text-muted">Tahan Ctrl (Windows) atau Cmd (Mac) untuk pilih banyak</small>
                     </div>
-                    <h6 class="mb-2 mt-3">Urutan File</h6>
-                    <ul id="playlistItems" class="list-group"></ul>
+                    <button class="btn btn-success btn-sm" type="button" onclick="addMultipleToPlaylist()">
+                        <i class="fas fa-plus"></i> Tambah yang Dipilih
+                    </button>
                 </div>
             </div>
         </div>

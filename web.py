@@ -1104,6 +1104,9 @@ def api_bulk_delete_sounds():
 @login_required
 def api_play_sound(sound_id):
     """Play sound for testing"""
+    import core
+    import subprocess
+    
     sound = get_sound_by_id(sound_id)
     
     if not sound:
@@ -1115,7 +1118,10 @@ def api_play_sound(sound_id):
         return jsonify({'success': False, 'message': 'File not found'})
     
     try:
-        import subprocess
+        # Stop previous audio first
+        core.stop_sound()
+        
+        # Play new audio
         ext = os.path.splitext(file_path)[1].lower()
         cmd = ['aplay', file_path] if ext == '.wav' else ['mpg123', '-q', file_path]
         

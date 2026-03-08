@@ -165,18 +165,37 @@
     }
 
     async function viewPlaylist(id) {
-        currentPlaylistId = id;
-        const modal = new bootstrap.Modal(document.getElementById('manageItemsModal'));
-        const res = await fetch('/api/playlists');
-        const playlists = await res.json();
-        const playlist = playlists.find(p => p.id === id);
-        document.getElementById('modalTitle').textContent = 'Kelola: ' + playlist.name;
-        document.getElementById('editPlaylistId').value = id;
-        document.getElementById('editName').value = playlist.name;
-        document.getElementById('editDesc').value = playlist.description || '';
-        await loadSoundsDropdown();
-        await loadPlaylistItems(id);
-        modal.show();
+        try {
+            currentPlaylistId = id;
+            const modalElement = document.getElementById('manageItemsModal');
+            if (!modalElement) {
+                alert('Error: Modal element tidak ditemukan!');
+                return;
+            }
+            const modal = new bootstrap.Modal(modalElement);
+            
+            const res = await fetch('/api/playlists');
+            const playlists = await res.json();
+            const playlist = playlists.find(p => p.id === id);
+            
+            if (!playlist) {
+                alert('Playlist tidak ditemukan!');
+                return;
+            }
+            
+            document.getElementById('modalTitle').textContent = 'Kelola: ' + playlist.name;
+            document.getElementById('editPlaylistId').value = id;
+            document.getElementById('editName').value = playlist.name;
+            document.getElementById('editDesc').value = playlist.description || '';
+            
+            await loadSoundsDropdown();
+            await loadPlaylistItems(id);
+            
+            modal.show();
+        } catch (err) {
+            console.error('Error in viewPlaylist:', err);
+            alert('Error: ' + err);
+        }
     }
 
     document.getElementById('editPlaylistForm').addEventListener('submit', async (e) => {
@@ -197,32 +216,43 @@
     });
 
     async function loadSoundsDropdown() {
-        const res = await fetch('/api/sounds');
-        const sounds = await res.json();
-        const select = document.getElementById('addSoundSelect');
-        select.innerHTML = '<option value="">-- Pilih Sound --</option>';
-        sounds.forEach(s => {
-            select.innerHTML += '<option value="' + s.id + '">' + s.name + ' (' + s.file_name + ')</option>';
-        });
+        try {
+            const res = await fetch('/api/sounds');
+            if (!res.ok) throw new Error('Failed to load sounds');
+            const sounds = await res.json();
+            const select = document.getElementById('addSoundSelect');
+            select.innerHTML = '<option value="">-- Pilih Sound --</option>';
+            sounds.forEach(s => {
+                select.innerHTML += '<option value="' + s.id + '">' + s.name + ' (' + s.file_name + ')</option>';
+            });
+        } catch (err) {
+            console.error('Error loading sounds:', err);
+        }
     }
 
     async function loadPlaylistItems(playlistId) {
-        const res = await fetch(`/api/playlists/${playlistId}/items`);
-        const items = await res.json();
-        const ul = document.getElementById('playlistItems');
-        ul.innerHTML = '';
-        if (items.length === 0) {
-            ul.innerHTML = '<li class="list-group-item text-muted">Belum ada file</li>';
-            return;
-        }
-        items.forEach((item, i) => {
-            ul.innerHTML += '<li class="list-group-item d-flex justify-content-between align-items-center">' +
-                '<div><strong>' + (i+1) + '.</strong> ' + item.name + ' <small>(' + item.file_name + ')</small></div>' +
-                '<button class="btn btn-sm btn-outline-danger" onclick="removeItem(' + item.id + ')"><i class="fas fa-trash"></i></button></li>';
-        });
-        const previewDiv = document.getElementById('items-' + playlistId);
-        if (previewDiv) {
-            previewDiv.innerHTML = items.map((item, i) => '<div class="text-truncate small"><strong>' + (i+1) + '.</strong> ' + item.name + '</div>').join('') || '<small class="text-muted">Belum ada file</small>';
+        try {
+            const res = await fetch(`/api/playlists/${playlistId}/items`);
+            if (!res.ok) throw new Error('Failed to load items');
+            const items = await res.json();
+            const ul = document.getElementById('playlistItems');
+            ul.innerHTML = '';
+            if (items.length === 0) {
+                ul.innerHTML = '<li class="list-group-item text-muted">Belum ada file</li>';
+                return;
+            }
+            items.forEach((item, i) => {
+                ul.innerHTML += '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+                    '<div><strong>' + (i+1) + '.</strong> ' + item.name + ' <small>(' + item.file_name + ')</small></div>' +
+                    '<button class="btn btn-sm btn-outline-danger" onclick="removeItem(' + item.id + ')"><i class="fas fa-trash"></i></button></li>';
+            });
+            const previewDiv = document.getElementById('items-' + playlistId);
+            if (previewDiv) {
+                previewDiv.innerHTML = items.map((item, i) => '<div class="text-truncate small"><strong>' + (i+1) + '.</strong> ' + item.name + '</div>').join('') || '<small class="text-muted">Belum ada file</small>';
+            }
+        } catch (err) {
+            console.error('Error loading items:', err);
+            alert('Gagal memuat items: ' + err);
         }
     }
 

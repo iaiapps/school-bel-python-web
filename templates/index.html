@@ -283,7 +283,7 @@
 
       // Category switching
       async function switchCategory(categoryName) {
-        if (confirm('Yakin ingin切换 ke kategori "' + categoryName + '"?')) {
+        if (confirm('Yakin ingin ke kategori "' + categoryName + '"?')) {
           try {
             let res = await fetch("/api/set-active-category", {
               method: "POST",
@@ -292,10 +292,10 @@
             });
             let data = await res.json();
             if (data.success) {
-              alert("Kategori berhasil切换 ke: " + categoryName);
+              alert("Kategori berhasil ke: " + categoryName);
               location.reload();
             } else {
-              alert("Gagal切换 kategori: " + data.message);
+              alert("Gagal kategori: " + data.message);
             }
           } catch (e) {
             alert("Error: " + e);

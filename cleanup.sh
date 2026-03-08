@@ -20,9 +20,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 print_banner() {
     echo -e "${CYAN}"
-    echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║         🧹 CLEANUP & UNINSTALL - APLIKASI BEL SEKOLAH       ║"
-    echo "╚══════════════════════════════════════════════════════════════╝"
+    echo "+==========================================================+"
+    echo "|         CLEANUP & UNINSTALL - APLIKASI BEL SEKOLAH       |"
+    echo "+==========================================================+"
     echo -e "${NC}"
 }
 

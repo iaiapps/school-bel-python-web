@@ -129,6 +129,9 @@
                     <button class="btn btn-success btn-sm" type="button" onclick="addMultipleToPlaylist()">
                         <i class="fas fa-plus"></i> Tambah yang Dipilih
                     </button>
+                    
+                    <h6 class="mb-2 mt-3">Urutan File dalam Playlist</h6>
+                    <ul id="playlistItems" class="list-group"></ul>
                 </div>
             </div>
         </div>
@@ -253,6 +256,39 @@
         } catch (err) {
             console.error('Error loading items:', err);
             alert('Gagal memuat items: ' + err);
+        }
+    }
+
+    async function addMultipleToPlaylist() {
+        const select = document.getElementById('addSoundSelect');
+        const selectedOptions = Array.from(select.selectedOptions);
+        
+        if (selectedOptions.length === 0) {
+            alert('Pilih minimal 1 sound');
+            return;
+        }
+        
+        let added = 0;
+        for (const option of selectedOptions) {
+            try {
+                const res = await fetch(`/api/playlists/${currentPlaylistId}/items`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sound_id: parseInt(option.value) })
+                });
+                const data = await res.json();
+                if (data.success) added++;
+            } catch (err) {
+                console.error('Error adding:', err);
+            }
+        }
+        
+        if (added > 0) {
+            alert('✓ ' + added + ' sounds ditambahkan!');
+            await loadPlaylistItems(currentPlaylistId);
+            select.value = '';
+        } else {
+            alert('✗ Gagal menambahkan sounds');
         }
     }
 

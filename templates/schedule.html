@@ -24,6 +24,33 @@
         font-size: 0.75rem;
         color: white;
       }
+      
+      /* Fix nav-tabs visibility */
+      .nav-tabs .nav-link {
+        color: #212529 !important;  /* Dark text */
+        background-color: #f8f9fa !important;  /* Light background */
+        border: 1px solid #dee2e6 !important;
+        font-weight: 600;
+        margin-right: 2px;
+      }
+      
+      .nav-tabs .nav-link.active {
+        background-color: #ff5722 !important;  /* Orange active */
+        color: #ffffff !important;  /* White text */
+        border-color: #ff5722 !important;
+        font-weight: 700;
+      }
+      
+      .nav-tabs .nav-link:hover {
+        background-color: #ffe0b2 !important;  /* Light orange hover */
+        color: #212529 !important;
+        border-color: #ff9800 !important;
+      }
+      
+      .tab-content {
+        background-color: #ffffff;
+        border-radius: 0 0 8px 8px;
+      }
     </style>
   </head>
   <body>

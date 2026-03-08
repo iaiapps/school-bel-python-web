@@ -32,88 +32,35 @@
       </div>
     </div>
 
-      <div class="container main-container">
-        
-        <!-- Status Card -->
-        <div class="status-card mb-3">
-          <div class="row align-items-center">
-            <p class="mb-2 fs-3 text-center">SDIT HARAPAN UMAT JEMBER</p>
-            <hr />
-            <div class="col-md-6 p-3">
-              <p class="mb-1">Waktu System</p>
-              <div class="current-time" id="currentTime">--:--:--</div>
-              <div class="current-date" id="currentDate">--</div>
-            </div>
-            <div class="col-md-6 p-3">
-              <p class="mb-2">
-                Status System: <strong id="coreStatus">Memeriksa...</strong>
+    <div class="container main-container">
+      <!-- Status Card -->
+      <div class="status-card mb-3">
+        <div class="row align-items-center">
+          <p class="mb-2 fs-3 text-center">SDIT HARAPAN UMAT JEMBER</p>
+          <hr />
+          <div class="col-md-6 p-3">
+            <p class="mb-1">Waktu System</p>
+            <div class="current-time" id="currentTime">--:--:--</div>
+            <div class="current-date" id="currentDate">--</div>
+          </div>
+          <div class="col-md-6 p-3">
+            <p class="mb-2">
+              Status System: <strong id="coreStatus">Memeriksa...</strong>
+            </p>
+            <div class="mb-2">
+              <p class="mb-0">
+                Bel berikutnya: <strong id="nextBell">Memuat...</strong>
               </p>
-              <div class="mb-2">
-                <p class="mb-0">
-                  Bel berikutnya: <strong id="nextBell">Memuat...</strong>
-                </p>
-              </div>
-              <button
-                class="quick-action-btn mt-3"
-                onclick="toggleCore()"
-                id="toggleBtn"
-              >
-                <i class="fas fa-power-off"></i> Matikan
-              </button>
             </div>
+            <button
+              class="quick-action-btn mt-3"
+              onclick="toggleCore()"
+              id="toggleBtn"
+            >
+              <i class="fas fa-power-off"></i> Matikan
+            </button>
           </div>
         </div>
-        
-        <!-- Category Switcher -->
-        <div class="card mb-3">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-              <div>
-                <span class="me-2"><i class="fas fa-tags"></i> Kategori:</span>
-                <br />
-                <div class="btn-group" role="group">
-                  {% for cat in categories %}
-                  <button
-                    type="button"
-                    class="btn btn-sm category-btn {% if cat[1] == active_category %}active{% endif %}"
-                    style="background-color: {{ cat[3] }}; border-color: {{ cat[3] }}; color: white;"
-                    onclick="switchCategory('{{ cat[1] }}')"
-                    id="cat-btn-{{ cat[1] }}"
-                  >
-                    {{ cat[1]|upper }}
-                  </button>
-                  {% endfor %}
-                </div>
-              </div>
-              <small class="text-muted">Klik untuk memilih kategori</small>
-            </div>
-          </div>
-        </div>
-
-      <div class="dashboard-card">
-        <div class="menu-icon"><i class="fas fa-music"></i></div>
-        <h5 class="menu-title">Play Manual</h5>
-
-        <div class="mb-3">
-          <select id="manualSound" class="form-select mb-2">
-            <option disabled selected>--- pilih sound---</option>
-            {% for sound in sounds %}
-            <option value="{{ sound[2] }}">
-              {{ sound[1] }} ({{ sound[2] }})
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-        <button class="quick-action-btn" onclick="playManual()">
-          <i class="fas fa-play-circle"></i> Putar Manual
-        </button>
-        <button
-          class="quick-action-btn btn-danger mt-2"
-          onclick="stopAudio()"
-          style="background: #dc3545; color: white"
-        >
-          <i class="fas fa-stop-circle"></i> Stop Audio
-        </button>
       </div>
 
       <div class="row gy-3 mb-3">
@@ -173,11 +120,44 @@
         </div>
       </div>
 
+      <!-- Category Switcher -->
+      <div class="dashboard-card mb-3">
+        <div class="card-body">
+          <div
+            class="d-flex justify-content-between align-items-center flex-wrap"
+          >
+            <div>
+              <span class="me-2"><i class="fas fa-tags"></i> Kategori:</span>
+              <br />
+              <div class="btn-group" role="group">
+                {% for cat in categories %}
+                <button
+                  type="button"
+                  class="btn btn-sm category-btn {% if cat[1] == active_category %}active{% endif %}"
+                  style="background-color: {{ cat[3] }}; border-color: {{ cat[3] }}; color: white;"
+                  onclick="switchCategory('{{ cat[1] }}')"
+                  id="cat-btn-{{ cat[1] }}"
+                >
+                  {{ cat[1]|upper }}
+                </button>
+                {% endfor %}
+              </div>
+            </div>
+            <small class="text-muted">Klik untuk memilih kategori</small>
+          </div>
+        </div>
+      </div>
+
       <div class="dashboard-card">
-        <p class="fs-5 mb-3 text-center">Jadwal Hari {{hari}}</p>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <p class="fs-5 mb-0">Jadwal Hari {{hari}}</p>
+          <a href="/schedule" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-calendar-alt"></i> Kelola Jadwal
+          </a>
+        </div>
         <hr />
         <div class="card-body">
-          {% if jadwal %} {% for item in jadwal %}
+          {% if jadwal and jadwal|length > 0 %} {% for item in jadwal %}
           <div class="schedule-item">
             <div class="d-flex justify-content-between align-items-center">
               <div>
@@ -188,7 +168,14 @@
             </div>
           </div>
           {% endfor %} {% else %}
-          <p class="text-muted">Tidak ada jadwal untuk hari ini.</p>
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Tidak ada jadwal untuk hari ini.</strong><br />
+            <small>
+              Kategori aktif: <strong>{{ active_category|upper }}</strong> |
+              <a href="/schedule">Tambah jadwal</a>
+            </small>
+          </div>
           {% endif %}
         </div>
       </div>
@@ -253,32 +240,6 @@
           statusEl.innerText = "BERHENTI";
           btn.innerHTML = '<i class="fas fa-power-off"></i> Hidupkan';
         }
-      }
-
-      // play manual
-      async function playManual() {
-        let soundFile = document.getElementById("manualSound").value;
-        if (!soundFile) {
-          alert("Pilih sound terlebih dahulu");
-          return;
-        }
-        let formData = new FormData();
-        formData.append("sound_file", soundFile);
-        let res = await fetch("/api/play-manual", {
-          method: "POST",
-          body: formData,
-        });
-        let data = await res.json();
-        alert(data.message);
-      }
-
-      // stop audio
-      async function stopAudio() {
-        let res = await fetch("/api/stop-audio", {
-          method: "POST",
-        });
-        let data = await res.json();
-        alert(data.message);
       }
 
       // nextbel

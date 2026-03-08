@@ -135,7 +135,10 @@ def index():
         if jadwal_time > now_time:
             next_bell = (jadwal_time, activity, sound_file)
             break
-
+    
+    # Debug logging
+    print(f"[DEBUG] Hari: {hari_ini}, Kategori: {active_category}, Jadwal count: {len(jadwal_hari_ini)}")
+    
     return render_template("index.html", jadwal=jadwal_hari_ini, hari=hari_ini, 
                          next_bell=next_bell, sounds=sounds, 
                          categories=categories, active_category=active_category)

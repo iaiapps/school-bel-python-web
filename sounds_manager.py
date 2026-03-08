@@ -2,6 +2,7 @@ import os
 import sqlite3
 from werkzeug.utils import secure_filename
 from config import Config
+from database import _connect
 
 SOUNDS_FOLDER = Config.UPLOAD_FOLDER
 
@@ -194,6 +195,3 @@ def get_folders():
                 folders.append(item)
     
     return sorted(folders)
-
-# Import from database module
-from database import _connect

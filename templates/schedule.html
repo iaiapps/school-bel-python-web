@@ -1,41 +1,48 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ff5722" />
     <title>Jadwal Harian - Aplikasi Bel Sekolah</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="/static/css/style.css" />
   </head>
   <body>
-    <!-- Navigation Header -->
-    <div class="bg-white p-3">
-      <div class="container d-flex justify-content-between align-items-center">
-        <p class="fs-5 mb-0 fw-bold">Jadwal Harian</p>
-        <div>
-          <a href="/settings" class="btn btn-sm btn-outline-primary me-2">
-            <i class="fas fa-cog"></i>
-          </a>
-          <a href="/logout" class="btn btn-sm btn-outline-danger">
-            <i class="fas fa-sign-out-alt"></i>
-          </a>
+    <div class="container main-container">
+      <!-- Navigation Header -->
+      <div class="bg-white p-3">
+        <div
+          class="container d-flex justify-content-between align-items-center"
+        >
+          <p class="fs-5 mb-0 fw-bold">Jadwal Harian</p>
+          <div>
+            <a href="/settings" class="btn btn-sm btn-outline-primary me-2">
+              <i class="fas fa-cog"></i>
+            </a>
+            <a href="/logout" class="btn btn-sm btn-outline-danger">
+              <i class="fas fa-sign-out-alt"></i>
+            </a>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="container main-container">
       <!-- Back Button -->
-      <div class="mb-3">
-        <a href="/" class="text-decoration-none text-dark">
+      <div class="mb-4">
+        <a href="/" class="quick-action-btn text-decoration-none">
           <i class="fas fa-arrow-left"></i> Kembali
         </a>
       </div>
 
       <!-- Category Info -->
       <div class="alert alert-info mb-3">
-        <i class="fas fa-tags"></i> 
+        <i class="fas fa-tags"></i>
         Kategori aktif: <strong>{{ active_category|upper }}</strong>
         <a href="/" class="ms-2">(Ganti di dashboard)</a>
       </div>
@@ -43,36 +50,71 @@
       <div class="dashboard-card">
         <p class="fs-4 text-center mb-3 fw-bold">Jadwal Bel</p>
         <div class="mb-4 d-flex gap-2 flex-wrap">
-          <a href="{{ url_for('add_schedule') }}" class="quick-action-btn text-decoration-none">
+          <a
+            href="{{ url_for('add_schedule') }}"
+            class="quick-action-btn text-decoration-none"
+          >
             <i class="fas fa-plus"></i> Tambah Jadwal
           </a>
-          
-          <form method="POST" action="{{ url_for('import_schedule') }}" class="d-inline" onsubmit="return confirm('Import jadwal default SDIT? Jadwal yang ada tidak akan dihapus.');">
+
+          <form
+            method="POST"
+            action="{{ url_for('import_schedule') }}"
+            class="d-inline"
+            onsubmit="
+              return confirm(
+                'Import jadwal default SDIT? Jadwal yang ada tidak akan dihapus.',
+              );
+            "
+          >
             <button type="submit" class="btn btn-success">
               <i class="fas fa-file-import"></i> Import Template
             </button>
           </form>
-          
-          <form method="POST" action="{{ url_for('reset_schedule') }}" class="d-inline" onsubmit="return confirm('PERINGATAN: Semua jadwal akan dihapus! Ini tidak bisa dibatalkan. Lanjutkan?');">
+
+          <form
+            method="POST"
+            action="{{ url_for('reset_schedule') }}"
+            class="d-inline"
+            onsubmit="
+              return confirm(
+                'PERINGATAN: Semua jadwal akan dihapus! Ini tidak bisa dibatalkan. Lanjutkan?',
+              );
+            "
+          >
             <button type="submit" class="btn btn-danger">
               <i class="fas fa-trash-alt"></i> Reset Semua
             </button>
           </form>
         </div>
         <hr />
-        
+
         <!-- Tab Hari -->
         <ul class="nav nav-tabs mb-3" id="dayTabs" role="tablist">
           {% for day in ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"] %}
           <li class="nav-item" role="presentation">
-            <button class="nav-link {% if day == hari_ini %}active{% endif %}" id="tab-{{day}}" data-bs-toggle="tab" data-bs-target="#content-{{day}}" type="button" role="tab">{{day}}</button>
+            <button
+              class="nav-link {% if day == hari_ini %}active{% endif %}"
+              id="tab-{{day}}"
+              data-bs-toggle="tab"
+              data-bs-target="#content-{{day}}"
+              type="button"
+              role="tab"
+            >
+              {{day}}
+            </button>
           </li>
           {% endfor %}
         </ul>
 
         <div class="tab-content p-3 border border-top-0" id="dayTabsContent">
-          {% for day in ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"] %}
-          <div class="tab-pane fade {% if day == hari_ini %}show active{% endif %}" id="content-{{day}}" role="tabpanel">
+          {% for day in
+          ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"] %}
+          <div
+            class="tab-pane fade {% if day == hari_ini %}show active{% endif %}"
+            id="content-{{day}}"
+            role="tabpanel"
+          >
             <h5 class="mb-3 fw-bold">Jadwal {{day}}</h5>
 
             <div class="table-responsive">
@@ -88,19 +130,34 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for row in schedules if row[1] == day and row[5] == active_category %}
+                  {% for row in schedules if row[1] == day and row[5] ==
+                  active_category %}
                   <tr>
                     <td>{{ loop.index }}</td>
                     <td><strong>{{ row[2] }}</strong></td>
                     <td>{{ row[3] }}</td>
                     <td><code>{{ row[4] }}</code></td>
-                    <td><span class="badge" style="background-color: {% for c in categories if c[1] == row[5] %}{{ c[3] }}{% endfor %}">{{ row[5]|upper }}</span></td>
+                    <td>
+                      <span
+                        class="badge"
+                        style="background-color: {% for c in categories if c[1] == row[5] %}{{ c[3] }}{% endfor %}"
+                        >{{ row[5]|upper }}</span
+                      >
+                    </td>
                     <td>
                       <div class="btn-group btn-group-sm">
-                        <a href="{{ url_for('edit_schedule', schedule_id=row[0]) }}" class="btn btn-outline-primary">
+                        <a
+                          href="{{ url_for('edit_schedule', schedule_id=row[0]) }}"
+                          class="btn btn-outline-primary"
+                        >
                           <i class="fas fa-edit"></i>
                         </a>
-                        <form method="POST" action="{{ url_for('delete_schedule', schedule_id=row[0]) }}" class="d-inline" onsubmit="return confirm('Hapus jadwal ini?');">
+                        <form
+                          method="POST"
+                          action="{{ url_for('delete_schedule', schedule_id=row[0]) }}"
+                          class="d-inline"
+                          onsubmit="return confirm('Hapus jadwal ini?');"
+                        >
                           <button type="submit" class="btn btn-outline-danger">
                             <i class="fas fa-trash"></i>
                           </button>
@@ -127,16 +184,18 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    // Auto-refresh page when category changes
-    function switchCategory(categoryName) {
-      if (confirm('Yakin ingin melihat jadwal kategori "' + categoryName + '"?')) {
-        fetch('/api/set-active-category', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ category: categoryName })
-        }).then(() => location.reload());
+      // Auto-refresh page when category changes
+      function switchCategory(categoryName) {
+        if (
+          confirm('Yakin ingin melihat jadwal kategori "' + categoryName + '"?')
+        ) {
+          fetch("/api/set-active-category", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ category: categoryName }),
+          }).then(() => location.reload());
+        }
       }
-    }
     </script>
   </body>
 </html>

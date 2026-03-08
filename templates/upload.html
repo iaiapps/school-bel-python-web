@@ -1,61 +1,84 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ff5722" />
     <title>Upload Sound - Aplikasi Bel Sekolah</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="/static/css/style.css" />
   </head>
   <body>
-    <!-- Navigation Header -->
-    <div class="bg-white p-3">
-      <div class="container d-flex justify-content-between align-items-center">
-        <p class="fs-5 mb-0 fw-bold">Upload Sound</p>
-        <div>
-          <a href="/settings" class="btn btn-sm btn-outline-primary me-2">
-            <i class="fas fa-cog"></i>
-          </a>
-          <a href="/logout" class="btn btn-sm btn-outline-danger">
-            <i class="fas fa-sign-out-alt"></i>
-          </a>
+    <div class="container main-container">
+      <!-- Navigation Header -->
+      <div class="bg-white p-3">
+        <div
+          class="container d-flex justify-content-between align-items-center"
+        >
+          <p class="fs-5 mb-0 fw-bold">Upload Sound</p>
+          <div>
+            <a href="/settings" class="btn btn-sm btn-outline-primary me-2">
+              <i class="fas fa-cog"></i>
+            </a>
+            <a href="/logout" class="btn btn-sm btn-outline-danger">
+              <i class="fas fa-sign-out-alt"></i>
+            </a>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="container main-container">
       <!-- Back Button -->
-      <div class="mb-3">
-        <a href="/" class="text-decoration-none text-dark">
+      <div class="mb-4">
+        <a href="/" class="quick-action-btn text-decoration-none">
           <i class="fas fa-arrow-left"></i> Kembali
         </a>
       </div>
 
       <div class="dashboard-card">
-        <h4 class="mb-4 fw-bold"><i class="fas fa-upload me-2"></i>Upload Sound</h4>
+        <h4 class="mb-4 fw-bold">
+          <i class="fas fa-upload me-2"></i>Upload Sound
+        </h4>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }} alert-dismissible fade show">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-              </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %} {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show">
+          {{ message }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+          ></button>
+        </div>
+        {% endfor %} {% endif %} {% endwith %}
 
         <form method="POST" enctype="multipart/form-data">
           <div class="mb-3">
             <label class="form-label fw-semibold">Nama Sound</label>
-            <input type="text" name="name" class="form-control" placeholder="Contoh: Bell Masuk, Istirahat, dll" required />
+            <input
+              type="text"
+              name="name"
+              class="form-control"
+              placeholder="Contoh: Bell Masuk, Istirahat, dll"
+              required
+            />
           </div>
 
           <div class="mb-3">
             <label class="form-label fw-semibold">File Audio (MP3/WAV)</label>
-            <input type="file" name="sound_file" class="form-control" accept=".mp3,.wav" required />
+            <input
+              type="file"
+              name="sound_file"
+              class="form-control"
+              accept=".mp3,.wav"
+              required
+            />
             <small class="text-muted">Format: MP3 atau WAV, max 10MB</small>
           </div>
 
@@ -66,7 +89,9 @@
 
         <hr class="my-4" />
 
-        <h5 class="mb-3 fw-bold"><i class="fas fa-list me-2"></i>Sound yang Sudah Diupload</h5>
+        <h5 class="mb-3 fw-bold">
+          <i class="fas fa-list me-2"></i>Sound yang Sudah Diupload
+        </h5>
         <div class="table-responsive">
           <table class="table table-hover table-bordered align-middle">
             <thead class="table-light">
@@ -84,7 +109,11 @@
                 <td><strong>{{ sound[1] }}</strong></td>
                 <td><code>{{ sound[2] }}</code></td>
                 <td>
-                  <form method="POST" action="{{ url_for('delete_sound', sound_id=sound[0]) }}" onsubmit="return confirm('Hapus sound ini?');">
+                  <form
+                    method="POST"
+                    action="{{ url_for('delete_sound', sound_id=sound[0]) }}"
+                    onsubmit="return confirm('Hapus sound ini?');"
+                  >
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                       <i class="fas fa-trash"></i>
                     </button>

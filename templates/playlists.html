@@ -1,350 +1,489 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ff5722" />
     <title>Playlist - Aplikasi Bel Sekolah</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="/static/css/style.css" />
-</head>
-<body>
-    <div class="bg-white p-3">
-        <div class="container d-flex justify-content-between align-items-center">
-            <p class="fs-5 mb-0">
-                <a href="/" class="text-decoration-none text-dark">
-                    <i class="fas fa-arrow-left me-2"></i>Kembali
-                </a>
-            </p>
-            <div>
-                <a href="/settings" class="btn btn-sm btn-outline-primary me-2">
-                    <i class="fas fa-cog"></i> Pengaturan
-                </a>
-                <a href="/logout" class="btn btn-sm btn-outline-danger">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
-            </div>
+  </head>
+  <body>
+    <div class="container main-container">
+      <!-- Navigation -->
+      <div class="bg-white p-3">
+        <div
+          class="container d-flex justify-content-between align-items-center"
+        >
+          <p class="fs-5 mb-0 fw-bold">Manajemen Playlist</p>
+          <div>
+            <a href="/settings" class="btn btn-sm btn-outline-primary me-2">
+              <i class="fas fa-cog"></i> Pengaturan
+            </a>
+            <a href="/logout" class="btn btn-sm btn-outline-danger">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <div class="container py-4">
-        <h2 class="mb-4"><i class="fas fa-list-ul"></i> Manajemen Playlist</h2>
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+      <!-- Back Button -->
+      <div class="mb-4">
+        <a href="/" class="quick-action-btn text-decoration-none">
+          <i class="fas fa-arrow-left"></i> Kembali
+        </a>
+      </div>
 
-        <div class="card mb-4">
-            <div class="card-header"><i class="fas fa-plus-circle"></i> Buat Playlist Baru</div>
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="alert alert-{{ category }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <i class="fas fa-plus-circle"></i> Buat Playlist Baru
+        </div>
+        <div class="card-body">
+          <form id="createPlaylistForm" class="row g-3">
+            <div class="col-md-4">
+              <input
+                type="text"
+                class="form-control"
+                id="playlistName"
+                placeholder="Nama Playlist"
+                required
+              />
+            </div>
+            <div class="col-md-5">
+              <input
+                type="text"
+                class="form-control"
+                id="playlistDesc"
+                placeholder="Deskripsi"
+              />
+            </div>
+            <div class="col-md-3">
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-plus"></i> Buat Playlist
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="row">
+        {% for playlist in playlists %}
+        <div class="col-12 col-md-6 col-lg-4 mb-4">
+          <div class="card h-100">
+            <div
+              class="card-header d-flex justify-content-between align-items-center"
+            >
+              <h5 class="mb-0">{{ playlist[1] }}</h5>
+              <span class="badge bg-primary">{{ playlist[5] }} file</span>
+            </div>
             <div class="card-body">
-                <form id="createPlaylistForm" class="row g-3">
-                    <div class="col-md-4">
-                        <input type="text" class="form-control" id="playlistName" placeholder="Nama Playlist" required>
-                    </div>
-                    <div class="col-md-5">
-                        <input type="text" class="form-control" id="playlistDesc" placeholder="Deskripsi">
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-plus"></i> Buat Playlist
-                        </button>
-                    </div>
-                </form>
+              <p class="text-muted small">{{ playlist[2] or '-' }}</p>
+              <div
+                id="items-{{ playlist[0] }}"
+                class="mb-3"
+                style="max-height: 200px; overflow-y: auto"
+              >
+                <small class="text-muted">Loading...</small>
+              </div>
             </div>
+            <div class="card-footer">
+              <div class="btn-group w-100">
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  onclick="viewPlaylist({{ playlist[0] }})"
+                >
+                  <i class="fas fa-eye"></i> Kelola
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  onclick="deletePlaylist({{ playlist[0] }}, '{{ playlist[1] }}')"
+                >
+                  <i class="fas fa-trash"></i> Hapus
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div class="row">
-            {% for playlist in playlists %}
-            <div class="col-12 col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">{{ playlist[1] }}</h5>
-                        <span class="badge bg-primary">{{ playlist[5] }} file</span>
-                    </div>
-                    <div class="card-body">
-                        <p class="text-muted small">{{ playlist[2] or '-' }}</p>
-                        <div id="items-{{ playlist[0] }}" class="mb-3" style="max-height: 200px; overflow-y: auto;">
-                            <small class="text-muted">Loading...</small>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="btn-group w-100">
-                            <button class="btn btn-sm btn-outline-primary" onclick="viewPlaylist({{ playlist[0] }})">
-                                <i class="fas fa-eye"></i> Kelola
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deletePlaylist({{ playlist[0] }}, '{{ playlist[1] }}')">
-                                <i class="fas fa-trash"></i> Hapus
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <div class="col-12">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Belum ada playlist. Buat playlist untuk murottal.
-                </div>
-            </div>
-            {% endfor %}
+        {% else %}
+        <div class="col-12">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Belum ada playlist. Buat playlist
+            untuk murottal.
+          </div>
         </div>
+        {% endfor %}
+      </div>
     </div>
 
     <div class="modal fade" id="manageItemsModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Kelola Playlist</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editPlaylistForm" class="mb-3">
-                        <input type="hidden" id="editPlaylistId">
-                        <div class="mb-2">
-                            <label class="form-label">Nama Playlist</label>
-                            <input type="text" class="form-control" id="editName" required>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="editDesc" rows="2"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
-                    </form>
-                    <hr>
-                    
-                    <h6 class="mb-2">Tambah File ke Playlist</h6>
-                    <div class="mb-2">
-                        <label class="form-label small">Pilih Multiple Sounds (Ctrl+Click / Cmd+Click)</label>
-                        <select class="form-select" id="addSoundSelect" multiple size="5" style="height: 120px;">
-                        </select>
-                        <small class="text-muted">Tahan Ctrl (Windows) atau Cmd (Mac) untuk pilih banyak</small>
-                    </div>
-                    <button class="btn btn-success btn-sm" type="button" onclick="addMultipleToPlaylist()">
-                        <i class="fas fa-plus"></i> Tambah yang Dipilih
-                    </button>
-                    
-                    <h6 class="mb-2 mt-3">Urutan File dalam Playlist</h6>
-                    <ul id="playlistItems" class="list-group"></ul>
-                </div>
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalTitle">Kelola Playlist</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="editPlaylistForm" class="mb-3">
+              <input type="hidden" id="editPlaylistId" />
+              <div class="mb-2">
+                <label class="form-label">Nama Playlist</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="editName"
+                  required
+                />
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Deskripsi</label>
+                <textarea
+                  class="form-control"
+                  id="editDesc"
+                  rows="2"
+                ></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Simpan
+              </button>
+            </form>
+            <hr />
+
+            <h6 class="mb-2">Tambah File ke Playlist</h6>
+            <div class="mb-2">
+              <label class="form-label small"
+                >Pilih Multiple Sounds (Ctrl+Click / Cmd+Click)</label
+              >
+              <select
+                class="form-select"
+                id="addSoundSelect"
+                multiple
+                size="5"
+                style="height: 120px"
+              ></select>
+              <small class="text-muted"
+                >Tahan Ctrl (Windows) atau Cmd (Mac) untuk pilih banyak</small
+              >
             </div>
+            <button
+              class="btn btn-success btn-sm"
+              type="button"
+              onclick="addMultipleToPlaylist()"
+            >
+              <i class="fas fa-plus"></i> Tambah yang Dipilih
+            </button>
+
+            <h6 class="mb-2 mt-3">Urutan File dalam Playlist</h6>
+            <ul id="playlistItems" class="list-group"></ul>
+          </div>
         </div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    let currentPlaylistId = null;
+      let currentPlaylistId = null;
 
-    // Load on page ready
-    document.addEventListener('DOMContentLoaded', () => {
+      // Load on page ready
+      document.addEventListener("DOMContentLoaded", () => {
         // Auto-load all playlist items preview
         loadAllPlaylistPreviews();
-    });
+      });
 
-    // Load all playlist previews on page load
-    async function loadAllPlaylistPreviews() {
+      // Load all playlist previews on page load
+      async function loadAllPlaylistPreviews() {
         try {
-            const res = await fetch('/api/playlists');
-            const playlists = await res.json();
-            
-            for (const playlist of playlists) {
-                const previewDiv = document.getElementById('items-' + playlist.id);
-                if (previewDiv) {
-                    const itemsRes = await fetch(`/api/playlists/${playlist.id}/items`);
-                    const items = await itemsRes.json();
-                    if (items.length > 0) {
-                        previewDiv.innerHTML = items.map((item, i) => 
-                            '<div class="text-truncate small"><strong>' + (i+1) + '.</strong> ' + item.name + '</div>'
-                        ).join('');
-                    } else {
-                        previewDiv.innerHTML = '<small class="text-muted">Belum ada file</small>';
-                    }
-                }
+          const res = await fetch("/api/playlists");
+          const playlists = await res.json();
+
+          for (const playlist of playlists) {
+            const previewDiv = document.getElementById("items-" + playlist.id);
+            if (previewDiv) {
+              const itemsRes = await fetch(
+                `/api/playlists/${playlist.id}/items`,
+              );
+              const items = await itemsRes.json();
+              if (items.length > 0) {
+                previewDiv.innerHTML = items
+                  .map(
+                    (item, i) =>
+                      '<div class="text-truncate small"><strong>' +
+                      (i + 1) +
+                      ".</strong> " +
+                      item.name +
+                      "</div>",
+                  )
+                  .join("");
+              } else {
+                previewDiv.innerHTML =
+                  '<small class="text-muted">Belum ada file</small>';
+              }
             }
+          }
         } catch (err) {
-            console.error('Error loading previews:', err);
+          console.error("Error loading previews:", err);
         }
-    }
+      }
 
-    document.getElementById('createPlaylistForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = document.getElementById('playlistName').value;
-        const description = document.getElementById('playlistDesc').value;
-        try {
-            const res = await fetch('/api/playlists', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, description })
+      document
+        .getElementById("createPlaylistForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = document.getElementById("playlistName").value;
+          const description = document.getElementById("playlistDesc").value;
+          try {
+            const res = await fetch("/api/playlists", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name, description }),
             });
             const data = await res.json();
-            if (data.success) { alert('✓ Playlist dibuat!'); location.reload(); }
-            else { alert('✗ ' + data.message); }
-        } catch (err) { alert('Error: ' + err); }
-    });
+            if (data.success) {
+              alert("✓ Playlist dibuat!");
+              location.reload();
+            } else {
+              alert("✗ " + data.message);
+            }
+          } catch (err) {
+            alert("Error: " + err);
+          }
+        });
 
-    async function deletePlaylist(id, name) {
+      async function deletePlaylist(id, name) {
         if (!confirm('Hapus playlist "' + name + '"?')) return;
         try {
-            const res = await fetch(`/api/playlists/${id}`, { method: 'DELETE' });
-            const data = await res.json();
-            if (data.success) { location.reload(); }
-            else { alert('✗ ' + data.message); }
-        } catch (err) { alert('Error: ' + err); }
-    }
-
-    async function viewPlaylist(id) {
-        try {
-            currentPlaylistId = id;
-            const modalElement = document.getElementById('manageItemsModal');
-            if (!modalElement) {
-                alert('Error: Modal element tidak ditemukan!');
-                return;
-            }
-            const modal = new bootstrap.Modal(modalElement);
-            
-            const res = await fetch('/api/playlists');
-            const playlists = await res.json();
-            const playlist = playlists.find(p => p.id === id);
-            
-            if (!playlist) {
-                alert('Playlist tidak ditemukan!');
-                return;
-            }
-            
-            document.getElementById('modalTitle').textContent = 'Kelola: ' + playlist.name;
-            document.getElementById('editPlaylistId').value = id;
-            document.getElementById('editName').value = playlist.name;
-            document.getElementById('editDesc').value = playlist.description || '';
-            
-            await loadSoundsDropdown();
-            await loadPlaylistItems(id);
-            
-            modal.show();
+          const res = await fetch(`/api/playlists/${id}`, { method: "DELETE" });
+          const data = await res.json();
+          if (data.success) {
+            location.reload();
+          } else {
+            alert("✗ " + data.message);
+          }
         } catch (err) {
-            console.error('Error in viewPlaylist:', err);
-            alert('Error: ' + err);
+          alert("Error: " + err);
         }
-    }
+      }
 
-    document.getElementById('editPlaylistForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = document.getElementById('editPlaylistId').value;
-        const name = document.getElementById('editName').value;
-        const description = document.getElementById('editDesc').value;
+      async function viewPlaylist(id) {
         try {
-            const res = await fetch(`/api/playlists/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, description })
-            });
-            const data = await res.json();
-            if (data.success) { alert('✓ Playlist diupdate!'); location.reload(); }
-            else { alert('✗ ' + data.message); }
-        } catch (err) { alert('Error: ' + err); }
-    });
-
-    async function loadSoundsDropdown() {
-        try {
-            const res = await fetch('/api/sounds');
-            if (!res.ok) throw new Error('Failed to load sounds');
-            const sounds = await res.json();
-            const select = document.getElementById('addSoundSelect');
-            select.innerHTML = '<option value="">-- Pilih Sound --</option>';
-            sounds.forEach(s => {
-                select.innerHTML += '<option value="' + s.id + '">' + s.name + ' (' + s.file_name + ')</option>';
-            });
-        } catch (err) {
-            console.error('Error loading sounds:', err);
-        }
-    }
-
-    async function loadPlaylistItems(playlistId) {
-        try {
-            const res = await fetch(`/api/playlists/${playlistId}/items`);
-            if (!res.ok) throw new Error('Failed to load items');
-            const items = await res.json();
-            const ul = document.getElementById('playlistItems');
-            ul.innerHTML = '';
-            if (items.length === 0) {
-                ul.innerHTML = '<li class="list-group-item text-muted">Belum ada file</li>';
-                return;
-            }
-            items.forEach((item, i) => {
-                ul.innerHTML += '<li class="list-group-item d-flex justify-content-between align-items-center">' +
-                    '<div><strong>' + (i+1) + '.</strong> ' + item.name + ' <small>(' + item.file_name + ')</small></div>' +
-                    '<button class="btn btn-sm btn-outline-danger" onclick="removeItem(' + item.id + ')"><i class="fas fa-trash"></i></button></li>';
-            });
-            const previewDiv = document.getElementById('items-' + playlistId);
-            if (previewDiv) {
-                previewDiv.innerHTML = items.map((item, i) => '<div class="text-truncate small"><strong>' + (i+1) + '.</strong> ' + item.name + '</div>').join('') || '<small class="text-muted">Belum ada file</small>';
-            }
-        } catch (err) {
-            console.error('Error loading items:', err);
-            alert('Gagal memuat items: ' + err);
-        }
-    }
-
-    async function addMultipleToPlaylist() {
-        const select = document.getElementById('addSoundSelect');
-        const selectedOptions = Array.from(select.selectedOptions);
-        
-        if (selectedOptions.length === 0) {
-            alert('Pilih minimal 1 sound');
+          currentPlaylistId = id;
+          const modalElement = document.getElementById("manageItemsModal");
+          if (!modalElement) {
+            alert("Error: Modal element tidak ditemukan!");
             return;
+          }
+          const modal = new bootstrap.Modal(modalElement);
+
+          const res = await fetch("/api/playlists");
+          const playlists = await res.json();
+          const playlist = playlists.find((p) => p.id === id);
+
+          if (!playlist) {
+            alert("Playlist tidak ditemukan!");
+            return;
+          }
+
+          document.getElementById("modalTitle").textContent =
+            "Kelola: " + playlist.name;
+          document.getElementById("editPlaylistId").value = id;
+          document.getElementById("editName").value = playlist.name;
+          document.getElementById("editDesc").value =
+            playlist.description || "";
+
+          await loadSoundsDropdown();
+          await loadPlaylistItems(id);
+
+          modal.show();
+        } catch (err) {
+          console.error("Error in viewPlaylist:", err);
+          alert("Error: " + err);
         }
-        
+      }
+
+      document
+        .getElementById("editPlaylistForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const id = document.getElementById("editPlaylistId").value;
+          const name = document.getElementById("editName").value;
+          const description = document.getElementById("editDesc").value;
+          try {
+            const res = await fetch(`/api/playlists/${id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name, description }),
+            });
+            const data = await res.json();
+            if (data.success) {
+              alert("✓ Playlist diupdate!");
+              location.reload();
+            } else {
+              alert("✗ " + data.message);
+            }
+          } catch (err) {
+            alert("Error: " + err);
+          }
+        });
+
+      async function loadSoundsDropdown() {
+        try {
+          const res = await fetch("/api/sounds");
+          if (!res.ok) throw new Error("Failed to load sounds");
+          const sounds = await res.json();
+          const select = document.getElementById("addSoundSelect");
+          select.innerHTML = '<option value="">-- Pilih Sound --</option>';
+          sounds.forEach((s) => {
+            select.innerHTML +=
+              '<option value="' +
+              s.id +
+              '">' +
+              s.name +
+              " (" +
+              s.file_name +
+              ")</option>";
+          });
+        } catch (err) {
+          console.error("Error loading sounds:", err);
+        }
+      }
+
+      async function loadPlaylistItems(playlistId) {
+        try {
+          const res = await fetch(`/api/playlists/${playlistId}/items`);
+          if (!res.ok) throw new Error("Failed to load items");
+          const items = await res.json();
+          const ul = document.getElementById("playlistItems");
+          ul.innerHTML = "";
+          if (items.length === 0) {
+            ul.innerHTML =
+              '<li class="list-group-item text-muted">Belum ada file</li>';
+            return;
+          }
+          items.forEach((item, i) => {
+            ul.innerHTML +=
+              '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+              "<div><strong>" +
+              (i + 1) +
+              ".</strong> " +
+              item.name +
+              " <small>(" +
+              item.file_name +
+              ")</small></div>" +
+              '<button class="btn btn-sm btn-outline-danger" onclick="removeItem(' +
+              item.id +
+              ')"><i class="fas fa-trash"></i></button></li>';
+          });
+          const previewDiv = document.getElementById("items-" + playlistId);
+          if (previewDiv) {
+            previewDiv.innerHTML =
+              items
+                .map(
+                  (item, i) =>
+                    '<div class="text-truncate small"><strong>' +
+                    (i + 1) +
+                    ".</strong> " +
+                    item.name +
+                    "</div>",
+                )
+                .join("") || '<small class="text-muted">Belum ada file</small>';
+          }
+        } catch (err) {
+          console.error("Error loading items:", err);
+          alert("Gagal memuat items: " + err);
+        }
+      }
+
+      async function addMultipleToPlaylist() {
+        const select = document.getElementById("addSoundSelect");
+        const selectedOptions = Array.from(select.selectedOptions);
+
+        if (selectedOptions.length === 0) {
+          alert("Pilih minimal 1 sound");
+          return;
+        }
+
         let added = 0;
         for (const option of selectedOptions) {
-            try {
-                const res = await fetch(`/api/playlists/${currentPlaylistId}/items`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sound_id: parseInt(option.value) })
-                });
-                const data = await res.json();
-                if (data.success) added++;
-            } catch (err) {
-                console.error('Error adding:', err);
-            }
-        }
-        
-        if (added > 0) {
-            alert('✓ ' + added + ' sounds ditambahkan!');
-            await loadPlaylistItems(currentPlaylistId);
-            select.value = '';
-        } else {
-            alert('✗ Gagal menambahkan sounds');
-        }
-    }
-
-    async function addSoundToPlaylist() {
-        const soundId = document.getElementById('addSoundSelect').value;
-        if (!soundId) return alert('Pilih sound dulu');
-        try {
-            const res = await fetch(`/api/playlists/${currentPlaylistId}/items`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sound_id: parseInt(soundId) })
-            });
+          try {
+            const res = await fetch(
+              `/api/playlists/${currentPlaylistId}/items`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sound_id: parseInt(option.value) }),
+              },
+            );
             const data = await res.json();
-            if (data.success) { await loadPlaylistItems(currentPlaylistId); document.getElementById('addSoundSelect').value = ''; }
-            else { alert('✗ ' + data.message); }
-        } catch (err) { alert('Error: ' + err); }
-    }
+            if (data.success) added++;
+          } catch (err) {
+            console.error("Error adding:", err);
+          }
+        }
 
-    async function removeItem(itemId) {
-        if (!confirm('Hapus dari playlist?')) return;
+        if (added > 0) {
+          alert("✓ " + added + " sounds ditambahkan!");
+          await loadPlaylistItems(currentPlaylistId);
+          select.value = "";
+        } else {
+          alert("✗ Gagal menambahkan sounds");
+        }
+      }
+
+      async function addSoundToPlaylist() {
+        const soundId = document.getElementById("addSoundSelect").value;
+        if (!soundId) return alert("Pilih sound dulu");
         try {
-            await fetch(`/api/playlists/items/${itemId}`, { method: 'DELETE' });
+          const res = await fetch(`/api/playlists/${currentPlaylistId}/items`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sound_id: parseInt(soundId) }),
+          });
+          const data = await res.json();
+          if (data.success) {
             await loadPlaylistItems(currentPlaylistId);
-        } catch (err) { alert('Error: ' + err); }
-    }
+            document.getElementById("addSoundSelect").value = "";
+          } else {
+            alert("✗ " + data.message);
+          }
+        } catch (err) {
+          alert("Error: " + err);
+        }
+      }
+
+      async function removeItem(itemId) {
+        if (!confirm("Hapus dari playlist?")) return;
+        try {
+          await fetch(`/api/playlists/items/${itemId}`, { method: "DELETE" });
+          await loadPlaylistItems(currentPlaylistId);
+        } catch (err) {
+          alert("Error: " + err);
+        }
+      }
     </script>
-</body>
+  </body>
 </html>

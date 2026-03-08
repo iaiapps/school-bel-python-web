@@ -11,6 +11,7 @@ Sistem bel sekolah otomatis untuk **Raspberry Pi** dengan web interface, support
 ## ✨ Fitur Utama
 
 ### 🎵 Audio System
+
 - **MP3 & WAV Support** - Menggunakan mpg123/aplay (ringan)
 - **Subfolder Support** - Organisir sounds dalam folder (bel/, murottal/, dll)
 - **Playlist** - Play multiple files berurutan
@@ -18,11 +19,13 @@ Sistem bel sekolah otomatis untuk **Raspberry Pi** dengan web interface, support
 - **Interrupt** - Bel prioritas lebih tinggi dari murottal
 
 ### 📅 Scheduler
+
 - **Jadwal Otomatis** - Sesuai jadwal sekolah
 - **Multi Kategori** - Normal, Ujian, Puasa
 - **Priority System** - Interrupt murottal saat bel masuk
 
 ### 🌐 Web Interface
+
 - **Responsive** - Optimal untuk HP
 - **Manage Sounds** - Upload, sync, organize dalam folder
 - **Bulk Upload** - Drag-drop multiple files
@@ -30,6 +33,7 @@ Sistem bel sekolah otomatis untuk **Raspberry Pi** dengan web interface, support
 - **Real-time Control** - Play/stop manual
 
 ### 🚀 Deployment
+
 - **One-Click Install** - Setup otomatis
 - **Auto-Start** - Nyala otomatis saat boot
 - **Systemd Service** - Production-ready
@@ -51,11 +55,13 @@ sudo ./install.sh
 ### 2. Akses
 
 **Dari HP/Laptop:**
+
 ```
 http://[IP-RASPBERRY-PI]:5000
 ```
 
 **Login:**
+
 - Username: `admin`
 - Password: `admin123`
 
@@ -70,15 +76,15 @@ http://[IP-RASPBERRY-PI]:5000
 
 ## 📱 Menu Web
 
-| Menu | Fungsi |
-|------|--------|
-| **Dashboard** | Overview, quick actions, status |
-| **Upload Sound** | Upload single file |
-| **Manage Sounds** | 🆕 Kelola folder, bulk upload, sync |
-| **Playlist** | Playlist untuk murottal/audio sequence |
-| **Jadwal Harian** | Atur jadwal bel otomatis |
-| **Riwayat** | Log aktivitas |
-| **Settings** | Audio, network, security |
+| Menu              | Fungsi                                 |
+| ----------------- | -------------------------------------- |
+| **Dashboard**     | Overview, quick actions, status        |
+| **Upload Sound**  | Upload single file                     |
+| **Manage Sounds** | 🆕 Kelola folder, bulk upload, sync    |
+| **Playlist**      | Playlist untuk murottal/audio sequence |
+| **Jadwal Harian** | Atur jadwal bel otomatis               |
+| **Riwayat**       | Log aktivitas                          |
+| **Settings**      | Audio, network, security               |
 
 ---
 
@@ -87,12 +93,14 @@ http://[IP-RASPBERRY-PI]:5000
 ### Upload Sounds (Banyak File)
 
 **Cara 1: Via Web (Manage Sounds)**
+
 1. Menu **Manage Sounds**
 2. **Upload** → Pilih folder (bel/, murottal/, dll)
 3. Drag-drop multiple files (max 50)
 4. Upload
 
 **Cara 2: Via SCP/USB + Sync**
+
 ```bash
 # Copy file ke folder
 scp *.mp3 admin@[IP]:/home/admin/bel/sounds/bel/
@@ -175,16 +183,19 @@ sudo journalctl -u bel-sekolah -f
 ## ⚙️ Settings
 
 ### Audio
+
 - **Volume**: 0-100%
 - **Output**: Auto/Headphone/HDMI
 - **Auto-restore**: Volume tersimpan saat reboot
 
 ### Network
+
 - **Port**: Default 5000
 - **Hostname**: Menggunakan hostname asli RPi
 - **Access**: Via IP atau hostname.local
 
 ### Security
+
 - **Ganti Password**: Settings → Security
 - **Session**: 24 jam
 
@@ -236,22 +247,23 @@ sudo systemctl restart bel-sekolah
 
 ## 📊 Database Schema
 
-| Table | Fungsi |
-|-------|--------|
-| `sounds` | File audio (name, file_path) |
-| `playlists` | Playlist header |
-| `playlist_items` | Urutan file dalam playlist |
-| `schedules` | Jadwal bel |
-| `categories` | Kategori (normal, ujian, puasa) |
-| `history` | Log playback |
-| `users` | User login |
-| `app_settings` | Pengaturan aplikasi |
+| Table            | Fungsi                          |
+| ---------------- | ------------------------------- |
+| `sounds`         | File audio (name, file_path)    |
+| `playlists`      | Playlist header                 |
+| `playlist_items` | Urutan file dalam playlist      |
+| `schedules`      | Jadwal bel                      |
+| `categories`     | Kategori (normal, ujian, puasa) |
+| `history`        | Log playback                    |
+| `users`          | User login                      |
+| `app_settings`   | Pengaturan aplikasi             |
 
 ---
 
 ## 🛠️ Development
 
 ### Requirements
+
 - Python 3.8+
 - Raspberry Pi OS
 - mpg123, alsa-utils
@@ -280,6 +292,7 @@ curl http://localhost:5000/api/core-status
 ## 📋 Changelog
 
 ### v3.0 (Current)
+
 - ✅ Subfolder support untuk sounds
 - ✅ Manage Sounds UI (bulk upload, sync)
 - ✅ Playlist system
@@ -289,11 +302,13 @@ curl http://localhost:5000/api/core-status
 - ✅ Auto-sync sounds
 
 ### v2.0
+
 - Playlist support
 - Multi-category schedules
 - Web interface improvement
 
 ### v1.0
+
 - Basic scheduler
 - Single file play
 
@@ -326,4 +341,4 @@ Aplikasi ini dibuat untuk **SDIT Harapan Umat Jember**.
 
 ---
 
-**Developed with ❤️ | 2026**
+**Developed with ❤️ iaiapps | 2026**

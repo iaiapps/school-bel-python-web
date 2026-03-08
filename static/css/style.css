@@ -581,3 +581,36 @@ input[type="time"] {
     break-inside: avoid;
   }
 }
+
+/* ====================================
+   TABS
+   ==================================== */
+
+.nav-tabs .nav-link {
+  color: #212529 !important;
+  background-color: #f8f9fa !important;
+  border: 1px solid #dee2e6 !important;
+  border-radius: 8px 8px 0 0 !important;
+  font-weight: 600;
+  margin-right: 2px;
+  padding: 10px 16px;
+}
+
+.nav-tabs .nav-link.active {
+  background-color: #ff5722 !important;
+  color: white !important;
+  border-color: #ff5722 !important;
+}
+
+.nav-tabs .nav-link:hover {
+  background-color: #ffe0b2 !important;
+  color: #212529 !important;
+}
+
+.tab-content {
+  background-color: #ffffff;
+  border-radius: 0 0 8px 8px;
+  padding: 20px;
+  border: 1px solid #dee2e6 !important;
+  border-top: none !important;
+}

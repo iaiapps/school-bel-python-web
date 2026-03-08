@@ -441,6 +441,10 @@ def import_schedule():
     
     from config import Config
     
+    # Get active category
+    active_cat = get_active_category()
+    active_category = active_cat[1] if active_cat else 'normal'
+    
     # Default sound file
     default_sound = "bell.mp3"
     
@@ -460,58 +464,58 @@ def import_schedule():
     
     # Jadwal SELASA/RABU/KAMIS (identik)
     hari_antara = [
-        ("Selasa", "07:15", "SHOLAT DHUHA", default_sound, "normal"),
-        ("Selasa", "07:30", "BTAQ", default_sound, "normal"),
-        ("Selasa", "08:00", "MAPEL I", default_sound, "normal"),
-        ("Selasa", "08:30", "MAPEL II", default_sound, "normal"),
-        ("Selasa", "09:00", "MAPEL III", default_sound, "normal"),
-        ("Selasa", "09:30", "MAPEL IV", default_sound, "normal"),
-        ("Selasa", "10:00", "ISTIRAHAT I", default_sound, "normal"),
-        ("Selasa", "10:15", "MAPEL V", default_sound, "normal"),
-        ("Selasa", "10:45", "MAPEL VI", default_sound, "normal"),
-        ("Selasa", "11:15", "ISHOMA II", default_sound, "normal"),
-        ("Selasa", "12:25", "MAPEL VII", default_sound, "normal"),
-        ("Selasa", "12:55", "MAPEL VIII", default_sound, "normal"),
-        ("Selasa", "13:25", "ISTIRAHAT III", default_sound, "normal"),
-        ("Selasa", "13:40", "MAPEL IX", default_sound, "normal"),
-        ("Selasa", "14:10", "MAPEL X", default_sound, "normal"),
-        ("Selasa", "15:00", "SHOLAT ASAR BERJAMA'AH DAN PULANG", default_sound, "normal"),
+        ("Selasa", "07:15", "SHOLAT DHUHA", default_sound, active_category),
+        ("Selasa", "07:30", "BTAQ", default_sound, active_category),
+        ("Selasa", "08:00", "MAPEL I", default_sound, active_category),
+        ("Selasa", "08:30", "MAPEL II", default_sound, active_category),
+        ("Selasa", "09:00", "MAPEL III", default_sound, active_category),
+        ("Selasa", "09:30", "MAPEL IV", default_sound, active_category),
+        ("Selasa", "10:00", "ISTIRAHAT I", default_sound, active_category),
+        ("Selasa", "10:15", "MAPEL V", default_sound, active_category),
+        ("Selasa", "10:45", "MAPEL VI", default_sound, active_category),
+        ("Selasa", "11:15", "ISHOMA II", default_sound, active_category),
+        ("Selasa", "12:25", "MAPEL VII", default_sound, active_category),
+        ("Selasa", "12:55", "MAPEL VIII", default_sound, active_category),
+        ("Selasa", "13:25", "ISTIRAHAT III", default_sound, active_category),
+        ("Selasa", "13:40", "MAPEL IX", default_sound, active_category),
+        ("Selasa", "14:10", "MAPEL X", default_sound, active_category),
+        ("Selasa", "15:00", "SHOLAT ASAR BERJAMA'AH DAN PULANG", default_sound, active_category),
     ]
     
     # Jadwal lengkap
     schedules_data = [
         # SENIN
-        ("Senin", "07:15", "SHOLAT DHUHA", default_sound, "normal"),
-        ("Senin", "07:30", "APEL PAGI", default_sound, "normal"),
-        ("Senin", "08:00", "BTAQ", default_sound, "normal"),
-        ("Senin", "08:30", "BINA KELAS", default_sound, "normal"),
-        ("Senin", "09:00", "MAPEL I", default_sound, "normal"),
-        ("Senin", "09:30", "MAPEL II", default_sound, "normal"),
-        ("Senin", "10:00", "ISTIRAHAT I", default_sound, "normal"),
-        ("Senin", "10:15", "MAPEL III", default_sound, "normal"),
-        ("Senin", "10:45", "MAPEL IV", default_sound, "normal"),
-        ("Senin", "11:15", "ISHOMA II", default_sound, "normal"),
-        ("Senin", "12:25", "MAPEL V", default_sound, "normal"),
-        ("Senin", "12:55", "MAPEL VI", default_sound, "normal"),
-        ("Senin", "13:25", "PULANG", default_sound, "normal"),
+        ("Senin", "07:15", "SHOLAT DHUHA", default_sound, active_category),
+        ("Senin", "07:30", "APEL PAGI", default_sound, active_category),
+        ("Senin", "08:00", "BTAQ", default_sound, active_category),
+        ("Senin", "08:30", "BINA KELAS", default_sound, active_category),
+        ("Senin", "09:00", "MAPEL I", default_sound, active_category),
+        ("Senin", "09:30", "MAPEL II", default_sound, active_category),
+        ("Senin", "10:00", "ISTIRAHAT I", default_sound, active_category),
+        ("Senin", "10:15", "MAPEL III", default_sound, active_category),
+        ("Senin", "10:45", "MAPEL IV", default_sound, active_category),
+        ("Senin", "11:15", "ISHOMA II", default_sound, active_category),
+        ("Senin", "12:25", "MAPEL V", default_sound, active_category),
+        ("Senin", "12:55", "MAPEL VI", default_sound, active_category),
+        ("Senin", "13:25", "PULANG", default_sound, active_category),
     ] + hari_antara + hari_antara + hari_antara + [
         # JUM'AT
-        ("Jumat", "07:15", "SHOLAT DHUHA", default_sound, "normal"),
-        ("Jumat", "07:30", "SENAM / BERKISAH", default_sound, "normal"),
-        ("Jumat", "08:00", "BTAQ", default_sound, "normal"),
-        ("Jumat", "08:30", "MAPEL I", default_sound, "normal"),
-        ("Jumat", "08:55", "MAPEL II", default_sound, "normal"),
-        ("Jumat", "09:20", "MAPEL III", default_sound, "normal"),
-        ("Jumat", "09:45", "MAPEL IV", default_sound, "normal"),
-        ("Jumat", "10:10", "ISTIRAHAT", default_sound, "normal"),
-        ("Jumat", "10:25", "MAPEL V", default_sound, "normal"),
-        ("Jumat", "10:50", "MAPEL VI", default_sound, "normal"),
-        ("Jumat", "11:15", "SHOLAT JUM'AT", default_sound, "normal"),
-        ("Jumat", "12:00", "ISTIRAHAT", default_sound, "normal"),
-        ("Jumat", "12:30", "PRAMUKA", default_sound, "normal"),
-        ("Jumat", "13:30", "ESKTRA", default_sound, "normal"),
-        ("Jumat", "14:30", "SHOLAT ASAR", default_sound, "normal"),
-        ("Jumat", "15:00", "PULANG", default_sound, "normal"),
+        ("Jumat", "07:15", "SHOLAT DHUHA", default_sound, active_category),
+        ("Jumat", "07:30", "SENAM / BERKISAH", default_sound, active_category),
+        ("Jumat", "08:00", "BTAQ", default_sound, active_category),
+        ("Jumat", "08:30", "MAPEL I", default_sound, active_category),
+        ("Jumat", "08:55", "MAPEL II", default_sound, active_category),
+        ("Jumat", "09:20", "MAPEL III", default_sound, active_category),
+        ("Jumat", "09:45", "MAPEL IV", default_sound, active_category),
+        ("Jumat", "10:10", "ISTIRAHAT", default_sound, active_category),
+        ("Jumat", "10:25", "MAPEL V", default_sound, active_category),
+        ("Jumat", "10:50", "MAPEL VI", default_sound, active_category),
+        ("Jumat", "11:15", "SHOLAT JUM'AT", default_sound, active_category),
+        ("Jumat", "12:00", "ISTIRAHAT", default_sound, active_category),
+        ("Jumat", "12:30", "PRAMUKA", default_sound, active_category),
+        ("Jumat", "13:30", "ESKTRA", default_sound, active_category),
+        ("Jumat", "14:30", "SHOLAT ASAR", default_sound, active_category),
+        ("Jumat", "15:00", "PULANG", default_sound, active_category),
     ]
     
     # Ganti nama hari untuk RABU dan KAMIS

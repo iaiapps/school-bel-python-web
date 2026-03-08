@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ff5722">
+    <title>Logs - Aplikasi Bel Sekolah</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=2">
+    <style>
+        .log-viewer {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            min-height: 500px;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .log-line {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid #333;
+        }
+        .log-error { color: #ff6b6b; }
+        .log-warning { color: #ffd93d; }
+        .log-info { color: #6bcb77; }
+        .log-debug { color: #4dabf7; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <div class="bg-white p-3 shadow-sm">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>
+                <a href="/" class="text-decoration-none text-dark">
+                    <i class="fas fa-arrow-left me-2"></i>Kembali
+                </a>
+                <a href="/settings" class="text-decoration-none text-dark ms-3">
+                    <i class="fas fa-cog me-2"></i>Settings
+                </a>
+            </div>
+            <p class="fs-5 mb-0">System Logs</p>
+            <a href="/logout" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <div class="container main-container">
+        <div class="row mb-3">
+            <div class="col-md-8">
+                <h3><i class="fas fa-file-alt text-info me-2"></i>Logs Aplikasi</h3>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-primary" onclick="refreshLogs()">
+                    <i class="fas fa-redo me-2"></i>Refresh
+                </button>
+                <button class="btn btn-success" onclick="downloadLogs()">
+                    <i class="fas fa-download me-2"></i>Download
+                </button>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <select class="form-select" id="logLines" onchange="refreshLogs()">
+                            <option value="50">50 Lines</option>
+                            <option value="100" selected>100 Lines</option>
+                            <option value="200">200 Lines</option>
+                            <option value="500">500 Lines</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
+                            <label class="form-check-label" for="autoRefresh">Auto Refresh (5s)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="text-muted" id="lastUpdate">Last update: -</span>
+                    </div>
+                </div>
+                <div class="log-viewer" id="logContainer">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p class="mt-3">Loading logs...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Tips:</strong>
+            <ul class="mb-0 mt-2">
+                <li>Logs ditampilkan real-time jika auto refresh aktif</li>
+                <li>Gunakan Download untuk menyimpan log ke file</li>
+                <li>Logs disimpan oleh systemd journal</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    let autoRefreshInterval = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        refreshLogs();
+    });
+
+    async function refreshLogs() {
+        const lines = document.getElementById('logLines').value;
+        const container = document.getElementById('logContainer');
+        
+        try {
+            const res = await fetch(`/api/logs?lines=${lines}`);
+            const data = await res.json();
+            
+            if (data.success) {
+                container.innerHTML = data.logs.split('\n').map(line => {
+                    let className = 'log-line';
+                    if (line.includes('ERROR') || line.includes('Failed')) className += ' log-error';
+                    else if (line.includes('WARNING') || line.includes('Warning')) className += ' log-warning';
+                    else if (line.includes('INFO')) className += ' log-info';
+                    else if (line.includes('DEBUG')) className += ' log-debug';
+                    return `<div class="${className}">${escapeHtml(line)}</div>`;
+                }).join('') || '<div class="text-muted">No logs</div>';
+                
+                // Scroll to bottom
+                container.scrollTop = container.scrollHeight;
+                
+                // Update timestamp
+                document.getElementById('lastUpdate').textContent = 'Last update: ' + new Date().toLocaleTimeString();
+            } else {
+                container.innerHTML = '<div class="text-danger">Error loading logs: ' + data.message + '</div>';
+            }
+        } catch (err) {
+            container.innerHTML = '<div class="text-danger">Error: ' + err + '</div>';
+        }
+    }
+
+    function toggleAutoRefresh() {
+        const checkbox = document.getElementById('autoRefresh');
+        
+        if (checkbox.checked) {
+            autoRefreshInterval = setInterval(refreshLogs, 5000);
+        } else {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+    }
+
+    async function downloadLogs() {
+        const lines = document.getElementById('logLines').value;
+        
+        try {
+            const res = await fetch(`/api/logs/download?lines=${lines}`);
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bel-sekolah-logs-${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (err) {
+            alert('Error downloading logs: ' + err);
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    </script>
+</body>
+</html>

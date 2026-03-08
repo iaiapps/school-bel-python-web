@@ -670,6 +670,83 @@ def settings_restart_service():
     
     return redirect(url_for("settings") + "#system")
 
+# ───── LOGS PAGE ─────
+@app.route("/manage-logs")
+@login_required
+def manage_logs():
+    """Logs viewer page"""
+    return render_template("logs.html")
+
+@app.route("/api/logs", methods=["GET"])
+@login_required
+def api_get_logs():
+    """Get application logs from journalctl"""
+    import subprocess
+    
+    lines = request.args.get('lines', 100)
+    
+    try:
+        # Get logs from systemd journal
+        result = subprocess.run(
+            ['journalctl', '-u', 'bel-sekolah.service', '-n', str(lines), '--no-pager'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode == 0:
+            return jsonify({
+                'success': True,
+                'logs': result.stdout
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to get logs'
+            })
+    except subprocess.TimeoutExpired:
+        return jsonify({
+            'success': False,
+            'message': 'Timeout getting logs'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
+
+@app.route("/api/logs/download", methods=["GET"])
+@login_required
+def api_download_logs():
+    """Download logs as file"""
+    import subprocess
+    from io import BytesIO
+    
+    lines = request.args.get('lines', 100)
+    
+    try:
+        result = subprocess.run(
+            ['journalctl', '-u', 'bel-sekolah.service', '-n', str(lines), '--no-pager'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode == 0:
+            from flask import send_file
+            buf = BytesIO(result.stdout.encode('utf-8'))
+            buf.seek(0)
+            return send_file(
+                buf,
+                mimetype='text/plain',
+                as_attachment=True,
+                download_name=f'bel-sekolah-logs.txt'
+            )
+        else:
+            return jsonify({'success': False, 'message': 'Failed to get logs'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
 # ───── API: TEST AUDIO ─────
 @app.route("/api/test-audio", methods=["POST"])
 @login_required

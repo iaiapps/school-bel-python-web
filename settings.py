@@ -138,7 +138,7 @@ class SettingsManager:
     def get_system_info(self):
         """Get system information"""
         import socket
-        import subprocess
+        import platform
         
         info = {
             'hostname': socket.gethostname(),
@@ -147,6 +147,7 @@ class SettingsManager:
             'is_raspberry_pi': False,
             'cpu_temp': None,
             'app_name': self.get('app_name', 'Bel Sekolah'),
+            'platform': platform.system() + ' ' + platform.release(),
         }
         
         # Get IP

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,10 +14,11 @@
       background: white;
       border-radius: 10px;
       padding: 15px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       position: sticky;
       top: 20px;
     }
+
     .nav-pills .nav-link {
       color: #212529 !important;
       margin-bottom: 8px;
@@ -28,23 +30,27 @@
       background-color: #f8f9fa !important;
       font-weight: 500;
     }
+
     .nav-pills .nav-link.active {
       background-color: #ff5722 !important;
       color: #ffffff !important;
       border-color: #ff5722;
     }
+
     .nav-pills .nav-link:hover {
       background-color: #ffe0b2 !important;
       color: #212529 !important;
       border-color: #ff9800;
     }
+
     .settings-card {
       background: white;
       border-radius: 10px;
       padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
+
     .info-box {
       background: #e8f4f8;
       border-left: 4px solid #17a2b8;
@@ -52,6 +58,7 @@
       margin-bottom: 20px;
       border-radius: 0 5px 5px 0;
     }
+
     .qr-code-img {
       max-width: 200px;
       border: 2px solid #dee2e6;
@@ -61,48 +68,47 @@
     }
   </style>
 </head>
+
 <body>
-  <div class="bg-white p-3 shadow-sm">
-    <div class="container d-flex justify-content-between align-items-center">
-      <p class="fs-5 mb-0 fw-bold">Settings</p>
-      <div>
-        <a href="/manage-logs" class="btn btn-sm btn-outline-info me-2">
-          <i class="fas fa-file-alt"></i> Logs
-        </a>
-        <a href="/logout" class="btn btn-sm btn-outline-danger">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </a>
+  <div class="container main-container">
+    <div class="bg-white p-3 shadow-sm mb-4">
+      <div class="container d-flex justify-content-between align-items-center">
+        <p class="fs-5 mb-0 fw-bold">Settings</p>
+        <div>
+          <a href="/manage-logs" class="btn btn-sm btn-outline-info me-2">
+            <i class="fas fa-file-alt"></i>
+          </a>
+          <a href="/logout" class="btn btn-sm btn-outline-danger">
+            <i class="fas fa-sign-out-alt"></i>
+          </a>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="container main-container">
-    <div class="mb-3">
-      <a href="/" class="text-decoration-none text-dark">
+    <!-- Back Button -->
+    <div class="mb-4">
+      <a href="/" class="quick-action-btn text-decoration-none">
         <i class="fas fa-arrow-left"></i> Kembali
       </a>
     </div>
 
-    <h3 class="mb-4">
-      <i class="fas fa-cog text-primary me-2"></i>Pengaturan Aplikasi
-    </h3>
-
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
     {% endwith %}
 
     <div class="row">
       <div class="col-md-3 mb-4">
         <div class="sidebar-card">
           <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist">
-            <button class="nav-link active" id="general-tab" data-bs-toggle="pill" data-bs-target="#general" type="button">
+            <button class="nav-link active" id="general-tab" data-bs-toggle="pill" data-bs-target="#general"
+              type="button">
               <i class="fas fa-sliders-h me-2"></i>Umum
             </button>
             <button class="nav-link" id="network-tab" data-bs-toggle="pill" data-bs-target="#network" type="button">
@@ -133,21 +139,26 @@
                 <div class="mb-3">
                   <label class="form-label">Timezone</label>
                   <select class="form-select" name="timezone">
-                    <option value="Asia/Jakarta" {% if settings.timezone == 'Asia/Jakarta' %}selected{% endif %}>WIB (Asia/Jakarta)</option>
-                    <option value="Asia/Makassar" {% if settings.timezone == 'Asia/Makassar' %}selected{% endif %}>WITA (Asia/Makassar)</option>
-                    <option value="Asia/Jayapura" {% if settings.timezone == 'Asia/Jayapura' %}selected{% endif %}>WIT (Asia/Jayapura)</option>
+                    <option value="Asia/Jakarta" {% if settings.timezone=='Asia/Jakarta' %}selected{% endif %}>WIB
+                      (Asia/Jakarta)</option>
+                    <option value="Asia/Makassar" {% if settings.timezone=='Asia/Makassar' %}selected{% endif %}>WITA
+                      (Asia/Makassar)</option>
+                    <option value="Asia/Jayapura" {% if settings.timezone=='Asia/Jayapura' %}selected{% endif %}>WIT
+                      (Asia/Jayapura)</option>
                   </select>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Theme</label>
                   <select class="form-select" name="theme">
-                    <option value="default" {% if settings.theme == 'default' %}selected{% endif %}>Default (Orange)</option>
-                    <option value="dark" {% if settings.theme == 'dark' %}selected{% endif %}>Dark Mode</option>
-                    <option value="light" {% if settings.theme == 'light' %}selected{% endif %}>Light Mode</option>
+                    <option value="default" {% if settings.theme=='default' %}selected{% endif %}>Default (Orange)
+                    </option>
+                    <option value="dark" {% if settings.theme=='dark' %}selected{% endif %}>Dark Mode</option>
+                    <option value="light" {% if settings.theme=='light' %}selected{% endif %}>Light Mode</option>
                   </select>
                 </div>
                 <div class="form-check form-switch mb-3">
-                  <input class="form-check-input" type="checkbox" name="auto_start" id="autoStart" {% if settings.auto_start %}checked{% endif %}>
+                  <input class="form-check-input" type="checkbox" name="auto_start" id="autoStart" {% if
+                    settings.auto_start %}checked{% endif %}>
                   <label class="form-check-label" for="autoStart">Auto Start Service</label>
                 </div>
                 <button type="submit" class="btn btn-primary">
@@ -168,7 +179,8 @@
               <form method="POST" action="/settings/network">
                 <div class="mb-3">
                   <label class="form-label">Port Server</label>
-                  <input type="number" class="form-control" name="port" value="{{ settings.port }}" min="1024" max="65535">
+                  <input type="number" class="form-control" name="port" value="{{ settings.port }}" min="1024"
+                    max="65535">
                   <div class="form-text">Port default: 5000</div>
                 </div>
                 <button type="submit" class="btn btn-primary">
@@ -184,15 +196,20 @@
               <form method="POST" action="/settings/audio">
                 <div class="mb-3">
                   <label class="form-label">Volume (0-100%)</label>
-                  <input type="range" class="form-range" name="volume" id="volumeRange" min="0" max="100" value="{{ settings.volume }}" oninput="document.getElementById('volumeValue').textContent = this.value">
-                  <div class="text-center"><span id="volumeValue" class="fs-4 fw-bold">{{ settings.volume }}</span>%</div>
+                  <input type="range" class="form-range" name="volume" id="volumeRange" min="0" max="100"
+                    value="{{ settings.volume }}"
+                    oninput="document.getElementById('volumeValue').textContent = this.value">
+                  <div class="text-center"><span id="volumeValue" class="fs-4 fw-bold">{{ settings.volume }}</span>%
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Audio Output</label>
                   <select class="form-select" name="audio_output">
-                    <option value="auto" {% if settings.audio_output == 'auto' %}selected{% endif %}>Auto (Default)</option>
-                    <option value="headphone" {% if settings.audio_output == 'headphone' %}selected{% endif %}>Headphone (3.5mm Jack)</option>
-                    <option value="hdmi" {% if settings.audio_output == 'hdmi' %}selected{% endif %}>HDMI</option>
+                    <option value="auto" {% if settings.audio_output=='auto' %}selected{% endif %}>Auto (Default)
+                    </option>
+                    <option value="headphone" {% if settings.audio_output=='headphone' %}selected{% endif %}>Headphone
+                      (3.5mm Jack)</option>
+                    <option value="hdmi" {% if settings.audio_output=='hdmi' %}selected{% endif %}>HDMI</option>
                   </select>
                 </div>
                 <button type="submit" class="btn btn-primary mb-2">
@@ -214,12 +231,12 @@
               </div>
               <div class="text-center mb-4">
                 {% if qr_exists %}
-                  <img src="/static/access-qr.png" alt="QR Code" class="qr-code-img mb-3">
-                  <br><small class="text-muted">Scan QR code dengan HP</small>
+                <img src="/static/access-qr.png" alt="QR Code" class="qr-code-img mb-3">
+                <br><small class="text-muted">Scan QR code dengan HP</small>
                 {% else %}
-                  <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i> QR Code belum digenerate
-                  </div>
+                <div class="alert alert-warning">
+                  <i class="fas fa-exclamation-triangle"></i> QR Code belum digenerate
+                </div>
                 {% endif %}
               </div>
               <div class="row">
@@ -265,13 +282,28 @@
               <div class="info-box">
                 <strong><i class="fas fa-info-circle me-2"></i>Info Sistem:</strong><br>
                 <table class="table table-sm table-borderless mb-0">
-                  <tr><td width="150">Hostname:</td><td><strong>{{ system_info.hostname }}</strong></td></tr>
-                  <tr><td>IP Address:</td><td><strong>{{ system_info.ip_address }}</strong></td></tr>
-                  <tr><td>Platform:</td><td><strong>{{ system_info.platform }}</strong></td></tr>
+                  <tr>
+                    <td width="150">Hostname:</td>
+                    <td><strong>{{ system_info.hostname }}</strong></td>
+                  </tr>
+                  <tr>
+                    <td>IP Address:</td>
+                    <td><strong>{{ system_info.ip_address }}</strong></td>
+                  </tr>
+                  <tr>
+                    <td>Platform:</td>
+                    <td><strong>{{ system_info.platform }}</strong></td>
+                  </tr>
                   {% if system_info.cpu_temp %}
-                  <tr><td>CPU Temp:</td><td><strong>{{ system_info.cpu_temp }}</strong></td></tr>
+                  <tr>
+                    <td>CPU Temp:</td>
+                    <td><strong>{{ system_info.cpu_temp }}</strong></td>
+                  </tr>
                   {% endif %}
-                  <tr><td>App Name:</td><td><strong>{{ system_info.app_name }}</strong></td></tr>
+                  <tr>
+                    <td>App Name:</td>
+                    <td><strong>{{ system_info.app_name }}</strong></td>
+                  </tr>
                 </table>
               </div>
               <div class="row">
@@ -315,4 +347,5 @@
     }, 5000);
   </script>
 </body>
+
 </html>

@@ -40,9 +40,13 @@
             <select class="form-control" id="day" name="day" required>
               <option selected disabled>--- pilih hari ---</option>
               {% for h in ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"] %}
-              <option value="{{ h }}">{{ h }}</option>
+              <option value="{{ h }}" {% if h == schedule[1] %}selected{% endif %}>{{ h }}</option>
               {% endfor %}
             </select>
+            <small class="text-muted">
+              <i class="fas fa-info-circle"></i> Untuk menambah jadwal di beberapa hari sekaligus, gunakan menu 
+              <a href="{{ url_for('add_schedule') }}">Tambah Jadwal Baru</a>
+            </small>
           </div>
 
           <!-- Jam -->

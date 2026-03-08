@@ -35,14 +35,137 @@
     <div class="container main-container">
       <!-- Status Card -->
       <div class="status-card mb-3">
-        <div class="row align-items-center">
-          <p class="mb-2 fs-3 text-center">SDIT HARAPAN UMAT JEMBER</p>
-          <hr />
-          <div class="col-md-6 p-3">
-            <p class="mb-1">Waktu System</p>
+        <p class="mb-3 fs-4 text-center fw-bold">SDIT HARAPAN UMAT JEMBER</p>
+        <div class="status-row">
+          <div class="col-time">
+            <p class="mb-1 fw-bold">Waktu System</p>
             <div class="current-time" id="currentTime">--:--:--</div>
             <div class="current-date" id="currentDate">--</div>
           </div>
+          <div class="col-status">
+            <p class="mb-2 fw-bold">
+              Status System: <strong id="coreStatus">Memeriksa...</strong>
+            </p>
+            <div class="mb-2">
+              <p class="mb-0">
+                Bel berikutnya: <strong id="nextBell">Memuat...</strong>
+              </p>
+            </div>
+            <button
+              class="quick-action-btn mt-2"
+              onclick="toggleCore()"
+              id="toggleBtn"
+            >
+              <i class="fas fa-power-off"></i> <span>Matikan</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Switcher - Horizontal Scroll on Mobile -->
+      <div class="dashboard-card mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-bold"><i class="fas fa-tags"></i> Kategori:</span>
+          <small class="text-muted">Scroll untuk melihat semua</small>
+        </div>
+        <div class="category-scroll">
+          {% for cat in categories %}
+          <button
+            type="button"
+            class="btn category-btn {% if cat[1] == active_category %}active{% endif %}"
+            style="background-color: {{ cat[3] }}; border-color: {{ cat[3] }}; color: white;"
+            onclick="switchCategory('{{ cat[1] }}')"
+            id="cat-btn-{{ cat[1] }}"
+          >
+            {{ cat[1]|upper }}
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Menu Grid - Responsive (1 col mobile, 2 col tablet, 3 col desktop) -->
+      <div class="menu-grid mb-3">
+        <!-- Upload Sound -->
+        <a href="/upload" class="text-decoration-none">
+          <div class="menu-card">
+            <div class="menu-icon"><i class="fas fa-upload"></i></div>
+            <h5 class="menu-title">Upload Sound</h5>
+            <p class="menu-description">File audio bel sekolah</p>
+          </div>
+        </a>
+
+        <!-- Manage Sounds -->
+        <a href="/sounds" class="text-decoration-none">
+          <div class="menu-card">
+            <div class="menu-icon"><i class="fas fa-folder-open"></i></div>
+            <h5 class="menu-title">Manage Sounds</h5>
+            <p class="menu-description">Kelola folder & sync</p>
+          </div>
+        </a>
+
+        <!-- Playlist -->
+        <a href="/playlists" class="text-decoration-none">
+          <div class="menu-card">
+            <div class="menu-icon"><i class="fas fa-list-ul"></i></div>
+            <h5 class="menu-title">Playlist</h5>
+            <p class="menu-description">Murottal & sequence</p>
+          </div>
+        </a>
+
+        <!-- Jadwal Harian -->
+        <a href="/schedule" class="text-decoration-none">
+          <div class="menu-card">
+            <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
+            <h5 class="menu-title">Jadwal Harian</h5>
+            <p class="menu-description">Atur jadwal otomatis</p>
+          </div>
+        </a>
+
+        <!-- Riwayat -->
+        <a href="/history" class="text-decoration-none">
+          <div class="menu-card">
+            <div class="menu-icon"><i class="fas fa-history"></i></div>
+            <h5 class="menu-title">Riwayat</h5>
+            <p class="menu-description">Log aktivitas</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Jadwal Hari Ini - Full width cards on mobile -->
+      <div class="dashboard-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <p class="fs-5 mb-0 fw-bold">Jadwal Hari {{hari}}</p>
+          <a href="/schedule" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-calendar-alt"></i> Kelola
+          </a>
+        </div>
+        <hr />
+        <div>
+          {% if jadwal and jadwal|length > 0 %}
+            {% for item in jadwal %}
+            <div class="schedule-item">
+              <div class="d-flex justify-content-between align-items-center flex-column flex-sm-row">
+                <div class="mb-2 mb-sm-0">
+                  <span class="time-badge">{{ item[0] }}</span>
+                  <span class="ms-2 fw-bold">{{ item[1] }}</span>
+                </div>
+                <small class="text-muted">{{ item[2] }}</small>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              <strong>Tidak ada jadwal untuk hari ini.</strong><br>
+              <small>
+                Kategori aktif: <strong>{{ active_category|upper }}</strong> | 
+                <a href="/schedule" class="fw-bold">Tambah jadwal</a>
+              </small>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
           <div class="col-md-6 p-3">
             <p class="mb-2">
               Status System: <strong id="coreStatus">Memeriksa...</strong>

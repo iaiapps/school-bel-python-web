@@ -31,17 +31,45 @@
         <p class="mb-3 fs-4 text-center">Tambah Jadwal Bel</p>
         <hr />
         <form method="POST" class="row g-3">
-          <div class="col-12 col-md-6">
-            <label>Hari</label>
-            <select name="day" class="form-select">
-              <option disabled selected>--- pilih hari---</option>
-              <option>Senin</option>
-              <option>Selasa</option>
-              <option>Rabu</option>
-              <option>Kamis</option>
-              <option>Jumat</option>
-              <option>Sabtu</option>
-            </select>
+          <div class="col-12 col-md-8">
+            <label>Pilih Hari (Bisa lebih dari satu)</label>
+            <div class="border rounded p-3 mb-2" style="background-color: #f8f9fa;">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="days" value="Senin" id="daySen">
+                <label class="form-check-label" for="daySen">Senin</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="days" value="Selasa" id="daySel">
+                <label class="form-check-label" for="daySel">Selasa</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="days" value="Rabu" id="dayRab">
+                <label class="form-check-label" for="dayRab">Rabu</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="days" value="Kamis" id="dayKam">
+                <label class="form-check-label" for="dayKam">Kamis</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="days" value="Jumat" id="dayJum">
+                <label class="form-check-label" for="dayJum">Jumat</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="days" value="Sabtu" id="daySab">
+                <label class="form-check-label" for="daySab">Sabtu</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="days" value="Minggu" id="dayMin">
+                <label class="form-check-label" for="dayMin">Minggu</label>
+              </div>
+            </div>
+            <small class="text-muted">
+              <i class="fas fa-info-circle"></i> Pilih minimal 1 hari. Pilih beberapa hari untuk membuat jadwal yang sama di hari tersebut.
+            </small>
+          </div>
+          <div class="col-12 col-md-4">
+            <label>Waktu (HH:MM)</label>
+            <input type="time" name="time" class="form-control" required />
           </div>
           <div class="col-12 col-md-6">
             <label>Waktu (HH:MM)</label>

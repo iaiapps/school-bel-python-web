@@ -265,6 +265,11 @@ init_db()
 print('  ✓ Database siap')
 "
 
+# Set correct permissions
+print_info "Setting database permissions..."
+chown -R ${ACTUAL_USER}:${ACTUAL_USER} database.db* 2>/dev/null || true
+chmod 644 database.db 2>/dev/null || true
+
 print_success "Database initialized"
 echo ""
 
@@ -318,6 +323,13 @@ print_success "Systemd daemon reloaded"
 # Enable service
 systemctl enable "${SERVICE_NAME}"
 print_success "Auto-start enabled"
+
+# Set correct permissions for all files
+print_info "Setting file permissions..."
+chown -R ${ACTUAL_USER}:${ACTUAL_USER} /home/${ACTUAL_USER}/bel 2>/dev/null || true
+find /home/${ACTUAL_USER}/bel -type d -exec chmod 755 {} \;
+find /home/${ACTUAL_USER}/bel -type f -exec chmod 644 {} \;
+chmod +x /home/${ACTUAL_USER}/bel/*.sh 2>/dev/null || true
 
 # Start service
 systemctl start "${SERVICE_NAME}"

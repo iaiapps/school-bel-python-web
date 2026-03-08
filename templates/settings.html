@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan - Aplikasi Bel Sekolah</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .settings-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .settings-card h5 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        .qr-code-img {
+            max-width: 200px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 10px;
+            background: white;
+        }
+        .nav-pills .nav-link {
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #007bff;
+        }
+        .nav-pills .nav-link:hover {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <div class="bg-white p-3 shadow-sm">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>
+                <a href="/" class="text-decoration-none text-dark">
+                    <i class="fas fa-arrow-left me-2"></i>Kembali
+                </a>
+            </div>
+            <p class="fs-5 mb-0">Pengaturan</p>
+            <a href="/logout" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <div class="container main-container">
+        <h3 class="mb-4">
+            <i class="fas fa-cog text-primary me-2"></i>Pengaturan Aplikasi
+        </h3>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <!-- Sidebar Menu -->
+            <div class="col-md-3 mb-4">
+                <div class="settings-card">
+                    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist">
+                        <button class="nav-link active" id="general-tab" data-bs-toggle="pill" data-bs-target="#general" type="button">
+                            <i class="fas fa-sliders-h me-2"></i>Umum
+                        </button>
+                        <button class="nav-link" id="network-tab" data-bs-toggle="pill" data-bs-target="#network" type="button">
+                            <i class="fas fa-network-wired me-2"></i>Jaringan
+                        </button>
+                        <button class="nav-link" id="audio-tab" data-bs-toggle="pill" data-bs-target="#audio" type="button">
+                            <i class="fas fa-volume-up me-2"></i>Audio
+                        </button>
+                        <button class="nav-link" id="access-tab" data-bs-toggle="pill" data-bs-target="#access" type="button">
+                            <i class="fas fa-qrcode me-2"></i>Akses & QR
+                        </button>
+                        <button class="nav-link" id="security-tab" data-bs-toggle="pill" data-bs-target="#security" type="button">
+                            <i class="fas fa-shield-alt me-2"></i>Keamanan
+                        </button>
+                        <button class="nav-link" id="system-tab" data-bs-toggle="pill" data-bs-target="#system" type="button">
+                            <i class="fas fa-microchip me-2"></i>Sistem
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="col-md-9">
+                <div class="tab-content" id="v-pills-tabContent">
+                    
+                    <!-- General Settings -->
+                    <div class="tab-pane fade show active" id="general" role="tabpanel">
+                        <div class="settings-card">
+                            <h5><i class="fas fa-sliders-h me-2"></i>Pengaturan Umum</h5>
+                            <form method="POST" action="/settings/general">
+                                <div class="mb-3">
+                                    <label class="form-label">Timezone</label>
+                                    <select class="form-select" name="timezone">
+                                        <option value="Asia/Jakarta" {% if settings.timezone == 'Asia/Jakarta' %}selected{% endif %}>Asia/Jakarta (WIB)</option>
+                                        <option value="Asia/Makassar" {% if settings.timezone == 'Asia/Makassar' %}selected{% endif %}>Asia/Makassar (WITA)</option>
+                                        <option value="Asia/Jayapura" {% if settings.timezone == 'Asia/Jayapura' %}selected{% endif %}>Asia/Jayapura (WIT)</option>
+                                    </select>
+                                    <div class="form-text">Pilih zona waktu untuk jadwal bel</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Tema</label>
+                                    <select class="form-select" name="theme">
+                                        <option value="default" {% if settings.theme == 'default' %}selected{% endif %}>Default (Biru)</option>
+                                        <option value="dark" {% if settings.theme == 'dark' %}selected{% endif %}>Dark Mode</option>
+                                        <option value="green" {% if settings.theme == 'green' %}selected{% endif %}>Green</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="auto_start" name="auto_start" {% if settings.auto_start %}checked{% endif %}>
+                                    <label class="form-check-label" for="auto_start">Auto-start saat boot</label>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Simpan Pengaturan
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Network Settings -->
+                    <div class="tab-pane fade" id="network" role="tabpanel">
+                        <div class="settings-card">
+                            <h5><i class="fas fa-network-wired me-2"></i>Pengaturan Jaringan</h5>
+                            
+                            <div class="info-box">
+                                <strong><i class="fas fa-info-circle me-2"></i>Info Jaringan Saat Ini:</strong><br>
+                                Hostname Raspberry Pi: <strong>{{ system_info.hostname }}</strong> (tidak dapat diubah)<br>
+                                IP Address: <strong>{{ system_info.ip_address }}</strong><br>
+                                MAC Address: <strong>{{ system_info.mac_address or 'N/A' }}</strong><br>
+                                <small class="text-muted">Hostname Raspberry Pi tidak dapat diubah dari aplikasi untuk keamanan sistem.</small>
+                            </div>
+
+                            <form method="POST" action="/settings/network">
+                                <div class="mb-3">
+                                    <label class="form-label">Port Server</label>
+                                    <input type="number" class="form-control" name="port" value="{{ settings.port }}" min="1024" max="65535">
+                                    <div class="form-text">Port default: 5000. Perubahan membutuhkan restart aplikasi.</div>
+                                </div>
+
+                                <hr class="my-4">
+                                
+                                <h6>Static IP (Opsional)</h6>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="static_ip_enabled" name="static_ip_enabled" {% if settings.static_ip_enabled %}checked{% endif %}>
+                                    <label class="form-check-label" for="static_ip_enabled">Gunakan Static IP</label>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">IP Address</label>
+                                        <input type="text" class="form-control" name="static_ip" value="{{ settings.static_ip }}" placeholder="192.168.1.100">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Gateway</label>
+                                        <input type="text" class="form-control" name="static_gateway" value="{{ settings.static_gateway }}" placeholder="192.168.1.1">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">DNS</label>
+                                        <input type="text" class="form-control" name="static_dns" value="{{ settings.static_dns }}" placeholder="8.8.8.8">
+                                    </div>
+                                </div>
+
+                                <div class="warning-box">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Peringatan:</strong> Pengaturan jaringan membutuhkan restart aplikasi. Static IP harus dikonfigurasi dengan benar agar tidak konflik.
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Simpan & Apply
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Audio Settings -->
+                    <div class="tab-pane fade" id="audio" role="tabpanel">
+                        <div class="settings-card">
+                            <h5><i class="fas fa-volume-up me-2"></i>Pengaturan Audio</h5>
+                            
+                            <form method="POST" action="/settings/audio">
+                                <div class="mb-3">
+                                    <label class="form-label">Output Audio</label>
+                                    <select class="form-select" name="audio_output">
+                                        <option value="auto" {% if settings.audio_output == 'auto' %}selected{% endif %}>Auto (Default)</option>
+                                        <option value="headphone" {% if settings.audio_output == 'headphone' %}selected{% endif %}>Headphone/3.5mm Jack</option>
+                                        <option value="hdmi" {% if settings.audio_output == 'hdmi' %}selected{% endif %}>HDMI</option>
+                                    </select>
+                                    <div class="form-text">
+                                        {% if system_info.is_raspberry_pi %}
+                                            <i class="fas fa-check-circle text-success me-1"></i>Raspberry Pi terdeteksi
+                                        {% else %}
+                                            <i class="fas fa-info-circle text-info me-1"></i>Komputer biasa - audio output otomatis
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Volume: <span id="volumeValue">{{ settings.volume }}</span>%</label>
+                                    <input type="range" class="form-range" name="volume" min="0" max="100" value="{{ settings.volume }}" id="volumeSlider">
+                                    <div class="d-flex justify-content-between">
+                                        <small>0%</small>
+                                        <small>50%</small>
+                                        <small>100%</small>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn btn-outline-primary mb-3" onclick="testAudio()">
+                                    <i class="fas fa-play me-2"></i>Test Audio
+                                </button>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Simpan Pengaturan Audio
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Access & QR -->
+                    <div class="tab-pane fade" id="access" role="tabpanel">
+                        <div class="settings-card">
+                            <h5><i class="fas fa-qrcode me-2"></i>Akses & QR Code</h5>
+                            
+                            <div class="info-box">
+                                <strong><i class="fas fa-link me-2"></i>URL Akses:</strong><br>
+                                <span class="fs-5">{{ access_url }}</span><br>
+                                <small class="text-muted">Buka URL ini dari HP untuk mengakses aplikasi</small>
+                            </div>
+
+                            <div class="text-center mb-4">
+                                {% if qr_exists %}
+                                    <img src="/static/access-qr.png" alt="QR Code" class="qr-code-img mb-3">
+                                    <br>
+                                    <small class="text-muted">Scan QR code dengan HP untuk akses cepat</small>
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>QR Code belum digenerate
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <form method="POST" action="/settings/generate-qr">
+                                        <button type="submit" class="btn btn-outline-primary w-100">
+                                            <i class="fas fa-sync me-2"></i>Generate Ulang QR
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <a href="/static/access-qr.png" download class="btn btn-outline-success w-100">
+                                        <i class="fas fa-download me-2"></i>Download QR Code
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <strong><i class="fas fa-lightbulb me-2"></i>Tips:</strong><br>
+                                1. Print QR code dan tempel di Raspberry Pi atau dinding<br>
+                                2. User bisa scan langsung untuk akses aplikasi<br>
+                                3. Bookmark URL di browser HP untuk akses cepat
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Settings -->
+                    <div class="tab-pane fade" id="security" role="tabpanel">
+                        <div class="settings-card">
+                            <h5><i class="fas fa-shield-alt me-2"></i>Keamanan</h5>
+                            
+                            <div class="warning-box mb-4">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Penting:</strong> Ganti password default untuk keamanan!
+                            </div>
+
+                            <form method="POST" action="/settings/password">
+                                <h6 class="mb-3">Ganti Password Admin</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Password Saat Ini</label>
+                                    <input type="password" class="form-control" name="current_password" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Password Baru</label>
+                                    <input type="password" class="form-control" name="new_password" required minlength="6">
+                                    <div class="form-text">Minimal 6 karakter</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Konfirmasi Password Baru</label>
+                                    <input type="password" class="form-control" name="confirm_password" required>
+                                </div>
+
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-key me-2"></i>Ganti Password
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- System Info -->
+                    <div class="tab-pane fade" id="system" role="tabpanel">
+                        <div class="settings-card">
+                            <h5><i class="fas fa-microchip me-2"></i>Informasi Sistem</h5>
+                            
+                            <table class="table table-bordered">
+                                <tr>
+                                    <td><strong>Hostname</strong></td>
+                                    <td>{{ system_info.hostname }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>IP Address</strong></td>
+                                    <td>{{ system_info.ip_address }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Device</strong></td>
+                                    <td>
+                                        {% if system_info.is_raspberry_pi %}
+                                            <i class="fab fa-raspberry-pi text-danger me-1"></i>Raspberry Pi
+                                            {% if system_info.cpu_temp %}
+                                                <br><small>CPU Temp: {{ system_info.cpu_temp }}</small>
+                                            {% endif %}
+                                        {% else %}
+                                            Komputer/Server
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Port Server</strong></td>
+                                    <td>{{ settings.port }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status Service</strong></td>
+                                    <td><span class="badge bg-success">Running</span></td>
+                                </tr>
+                            </table>
+
+                            <hr>
+
+                            <h6 class="mb-3">System Actions</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <form method="POST" action="/settings/restart-service" onsubmit="return confirm('Restart aplikasi?');">
+                                        <button type="submit" class="btn btn-outline-warning w-100">
+                                            <i class="fas fa-redo me-2"></i>Restart Aplikasi
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <a href="/settings/logs" class="btn btn-outline-info w-100" target="_blank">
+                                        <i class="fas fa-file-alt me-2"></i>Lihat Logs
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Volume slider
+        document.getElementById('volumeSlider').addEventListener('input', function() {
+            document.getElementById('volumeValue').textContent = this.value;
+        });
+
+        // Test audio
+        function testAudio() {
+            fetch('/api/test-audio', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Audio test berhasil! Periksa speaker/headphone.');
+                    } else {
+                        alert('Audio test gagal: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error);
+                });
+        }
+    </script>
+</body>
+</html>

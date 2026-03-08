@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Riwayat Pemutaran Bel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Bootstrap & FontAwesome (jika dipakai di project) -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <div class="bg-white p-3 text-center">
+      <p class="fs-5 mb-0">Aplikasi Bell Sekolah</p>
+    </div>
+
+    <div class="container main-container">
+      <div class="mb-4">
+        <a
+          class="quick-action-btn text-decoration-none"
+          href="{{ url_for('index') }}"
+          ><i class="fa-solid fa-arrow-left"></i> Kembali</a
+        >
+      </div>
+      <div class="dashboard-card">
+        <div class="card-body p-0">
+          <div class="mb-3">
+            <p class="fs-4 mb-0 text-center">Riwayat Pemutaran Bel</p>
+            <hr />
+          </div>
+          <div class="clearfix mb-3">
+            <form method="POST" class="float-end">
+              <input type="hidden" name="action" value="clear" />
+              <button
+                type="submit"
+                class="btn btn-danger"
+                onclick="return confirm('Kosongkan semua history?')"
+              >
+                <i class="fas fa-trash"></i> Bersihkan History
+              </button>
+            </form>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 60px">#</th>
+                  <th>Waktu Diputar</th>
+                  <th>Hari</th>
+                  <th>Jam Jadwal</th>
+                  <th>Kegiatan</th>
+                  <th>File</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if logs and logs|length > 0 %} {% for row in logs %}
+                <tr>
+                  <td>{{ row[0] }}</td>
+                  <td>{{ row[1] }}</td>
+                  <td>{{ row[2] }}</td>
+                  <td>{{ row[3] }}</td>
+                  <td>{{ row[4] }}</td>
+                  <td><code>{{ row[5] }}</code></td>
+                </tr>
+                {% endfor %} {% else %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">
+                    Belum ada riwayat pemutaran.
+                  </td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

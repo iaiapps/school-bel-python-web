@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Bel Otomatis</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <div class="bg-white p-3">
+      <div class="container d-flex justify-content-between align-items-center">
+        <p class="fs-5 mb-0">Aplikasi Bell Sekolah</p>
+        <div>
+          <a href="/settings" class="btn btn-sm btn-outline-primary me-2">
+            <i class="fas fa-cog"></i> Pengaturan
+          </a>
+          <a href="/logout" class="btn btn-sm btn-outline-danger">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container main-container">
+      
+      <!-- Category Switcher -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+              <span class="me-2"><i class="fas fa-tags"></i> Kategori:</span>
+              <div class="btn-group" role="group">
+                {% for cat in categories %}
+                <button type="button" 
+                        class="btn btn-sm category-btn {% if cat[1] == active_category %}active{% endif %}"
+                        style="background-color: {{ cat[3] }}; border-color: {{ cat[3] }}; color: white;"
+                        onclick="switchCategory('{{ cat[1] }}')"
+                        id="cat-btn-{{ cat[1] }}">
+                  {{ cat[1]|upper }}
+                </button>
+                {% endfor %}
+              </div>
+            </div>
+            <small class="text-muted">Klik untuk切换 kategori</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Card -->
+      <div class="status-card">
+        <div class="row align-items-center">
+          <p class="mb-2 fs-3 text-center">SDIT HARAPAN UMAT JEMBER</p>
+          <hr />
+          <div class="col-md-6 p-3">
+            <p class="mb-1">Waktu System</p>
+            <div class="current-time" id="currentTime">--:--:--</div>
+            <div class="current-date" id="currentDate">--</div>
+          </div>
+          <div class="col-md-6 p-3">
+            <p class="mb-2">
+              Status System: <strong id="coreStatus">Memeriksa...</strong>
+            </p>
+            <div class="mb-2">
+              <p class="mb-0">
+                Bel berikutnya: <strong id="nextBell">Memuat...</strong>
+              </p>
+            </div>
+            <button
+              class="quick-action-btn mt-3"
+              onclick="toggleCore()"
+              id="toggleBtn"
+            >
+              <i class="fas fa-power-off"></i> Matikan
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="menu-icon"><i class="fas fa-music"></i></div>
+        <h5 class="menu-title">Play Manual</h5>
+
+        <div class="mb-3">
+          <select id="manualSound" class="form-select mb-2">
+            <option disabled selected>--- pilih sound---</option>
+            {% for sound in sounds %}
+            <option value="{{ sound[2] }}">
+              {{ sound[1] }} ({{ sound[2] }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <button class="quick-action-btn" onclick="playManual()">
+          <i class="fas fa-play-circle"></i> Putar Manual
+        </button>
+        <button class="quick-action-btn btn-danger mt-2" onclick="stopAudio()" style="background: #dc3545; color: white;">
+          <i class="fas fa-stop-circle"></i> Stop Audio
+        </button>
+      </div>
+
+      <div class="row">
+        <!-- Upload Sound -->
+        <div class="col-12 col-md-4">
+          <a href="/upload" class="text-decoration-none text-dark">
+            <div class="dashboard-card menu-card">
+              <div class="menu-icon"><i class="fas fa-upload"></i></div>
+              <h5 class="menu-title">Upload Sound</h5>
+              <p class="menu-description">File audio bel sekolah</p>
+            </div>
+          </a>
+        </div>
+
+        <!-- Playlist -->
+        <div class="col-12 col-md-4">
+          <a href="/playlists" class="text-decoration-none text-dark">
+            <div class="dashboard-card menu-card">
+              <div class="menu-icon"><i class="fas fa-list-ul"></i></div>
+              <h5 class="menu-title">Playlist</h5>
+              <p class="menu-description">Kelola murottal & audio sequence</p>
+            </div>
+          </a>
+        </div>
+
+        <!-- Jadwal Harian -->
+        <div class="col-12 col-md-4">
+          <a href="/schedule" class="text-decoration-none text-dark">
+            <div class="dashboard-card menu-card">
+              <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
+              <h5 class="menu-title">Jadwal Harian</h5>
+              <p class="menu-description">Atur jadwal bel otomatis</p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <p class="fs-5 mb-3 text-center">Jadwal Hari {{hari}}</p>
+        <hr />
+        <div class="card-body">
+          {% if jadwal %} {% for item in jadwal %}
+          <div class="schedule-item">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="time-badge">{{ item[0] }}</span>
+                <span class="ms-2">{{ item[1] }}</span>
+              </div>
+              <small class="text-muted">{{ item[2] }}</small>
+            </div>
+          </div>
+          {% endfor %} {% else %}
+          <p class="text-muted">Tidak ada jadwal untuk hari ini.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // time
+      function updateTime() {
+        const now = new Date();
+        const time = now.toLocaleTimeString("id-ID");
+        const date = now.toLocaleDateString("id-ID", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+
+        document.getElementById("currentTime").textContent = time;
+        document.getElementById("currentDate").textContent = date;
+      }
+
+      setInterval(updateTime, 1000);
+      updateTime();
+
+      // core status
+      async function refreshCoreStatus() {
+        let res = await fetch("/api/core-status");
+        let data = await res.json();
+        let statusEl = document.getElementById("coreStatus");
+        let btn = document.getElementById("toggleBtn");
+
+        if (data.status === "running") {
+          statusEl.innerText = "AKTIF";
+          btn.innerHTML = '<i class="fas fa-power-off"></i> Matikan';
+        } else {
+          statusEl.innerText = "BERHENTI";
+          btn.innerHTML = '<i class="fas fa-power-off"></i> Hidupkan';
+        }
+      }
+
+      async function toggleCore() {
+        let res = await fetch("/api/toggle-core", { method: "POST" });
+        let data = await res.json();
+        refreshCoreStatus();
+      }
+
+      setInterval(refreshCoreStatus, 30000);
+      refreshCoreStatus();
+
+      // matikan hidupkan core
+      // toggle core
+      async function toggleCore() {
+        let res = await fetch("/api/toggle-core", { method: "POST" });
+        let data = await res.json();
+        let statusEl = document.getElementById("coreStatus");
+        let btn = document.getElementById("toggleBtn");
+
+        if (data.status === "running") {
+          statusEl.innerText = "AKTIF";
+          btn.innerHTML = '<i class="fas fa-power-off"></i> Matikan';
+        } else {
+          statusEl.innerText = "BERHENTI";
+          btn.innerHTML = '<i class="fas fa-power-off"></i> Hidupkan';
+        }
+      }
+
+      // play manual
+      async function playManual() {
+        let soundFile = document.getElementById("manualSound").value;
+        if (!soundFile) {
+          alert("Pilih sound terlebih dahulu");
+          return;
+        }
+        let formData = new FormData();
+        formData.append("sound_file", soundFile);
+        let res = await fetch("/api/play-manual", {
+          method: "POST",
+          body: formData,
+        });
+        let data = await res.json();
+        alert(data.message);
+      }
+
+      // stop audio
+      async function stopAudio() {
+        let res = await fetch("/api/stop-audio", {
+          method: "POST",
+        });
+        let data = await res.json();
+        alert(data.message);
+      }
+
+      // nextbel
+      async function fetchNextBell() {
+        try {
+          let res = await fetch("/api/next-bell");
+          let data = await res.json();
+          if (data.time) {
+            document.getElementById("nextBell").innerText =
+              data.activity + " (" + data.time + ")";
+          } else {
+            document.getElementById("nextBell").innerText =
+              "Tidak ada jadwal berikutnya hari ini.";
+          }
+        } catch (e) {
+          console.error(e);
+          document.getElementById("nextBell").innerText = "Error memuat data";
+        }
+      }
+
+      // Jalankan saat load + perbarui tiap 30 detik
+      fetchNextBell();
+      setInterval(fetchNextBell, 30000);
+
+      // Category switching
+      async function switchCategory(categoryName) {
+        if (confirm('Yakin ingin切换 ke kategori "' + categoryName + '"?')) {
+          try {
+            let res = await fetch("/api/set-active-category", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ category: categoryName })
+            });
+            let data = await res.json();
+            if (data.success) {
+              alert('Kategori berhasil切换 ke: ' + categoryName);
+              location.reload();
+            } else {
+              alert('Gagal切换 kategori: ' + data.message);
+            }
+          } catch (e) {
+            alert('Error: ' + e);
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

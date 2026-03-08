@@ -1,0 +1,92 @@
+      body {
+        background-color: #f8f9fa;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .main-container {
+        margin-top: 30px;
+      }
+
+      .status-card,
+      .dashboard-card {
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 30px;
+      }
+
+      .current-time {
+        font-size: 2.5rem;
+        font-weight: bold;
+      }
+
+      .current-date {
+        font-size: 1.2rem;
+        color: #666;
+      }
+
+      .quick-action-btn {
+        background-color: #ff5722;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+
+      .stat-item {
+        background-color: #fff;
+        padding: 15px;
+        text-align: center;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-number {
+        font-size: 1.8rem;
+        font-weight: bold;
+      }
+
+      .menu-card {
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      .menu-card:hover {
+        background-color: #f0f0f0;
+      }
+
+      .menu-icon {
+        font-size: 2.5rem;
+        color: #ff5722;
+      }
+
+      .menu-title {
+        margin-top: 10px;
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+
+      .menu-description {
+        color: #555;
+      }
+
+      .schedule-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .time-badge {
+        background-color: #ff5722;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+      }

@@ -108,21 +108,22 @@
       </form>
     </div>
   </div>
+
+  <script>
+    // Add info message when playlist is selected
+    document
+      .getElementById("soundSelect")
+      .addEventListener("change", function () {
+        const selected = this.options[this.selectedIndex];
+        if (selected.value.startsWith("playlist:")) {
+          alert(
+            'Playlist dipilih: "' +
+            selected.text.replace("📋 ", "") +
+            '"\\n\\nSemua file dalam playlist akan diputar berurutan.',
+          );
+        }
+      });
+  </script>
 </body>
-<script>
-  // Add info message when playlist is selected
-  document
-    .getElementById("soundSelect")
-    .addEventListener("change", function () {
-      const selected = this.options[this.selectedIndex];
-      if (selected.value.startsWith("playlist:")) {
-        alert(
-          'Playlist dipilih: "' +
-          selected.text.replace("📋 ", "") +
-          '"\\n\\nSemua file dalam playlist akan diputar berurutan.',
-        );
-      }
-    });
-</script>
 
 </html>

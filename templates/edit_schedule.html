@@ -26,16 +26,16 @@
       <p class="mb-3 fs-4 text-center">Edit Jadwal Bel</p>
       <hr />
 
-        <form method="POST">
-          <!-- Pilih Hari -->
-          <div class="mb-3">
-            <label for="day" class="form-label">Hari</label>
-            <select class="form-control" id="day" name="day" required>
-              {% for h in ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"] %}
-              <option value="{{ h }}" {% if h == schedule[1] %}selected{% endif %}>{{ h }}</option>
-              {% endfor %}
-            </select>
-          </div>
+      <form method="POST">
+        <!-- Pilih Hari -->
+        <div class="mb-3">
+          <label for="day" class="form-label">Hari</label>
+          <select class="form-control" id="day" name="day" required>
+            {% for h in ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"] %}
+            <option value="{{ h }}" {% if h==schedule[1] %}selected{% endif %}>{{ h }}</option>
+            {% endfor %}
+          </select>
+        </div>
 
         <!-- Jam -->
         <div class="mb-3">

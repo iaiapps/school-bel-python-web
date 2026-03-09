@@ -1,128 +1,128 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ff5722" />
-    <title>Jadwal Bel</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
 
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="/static/css/style.css" />
-  </head>
-  <body>
-    <div class="bg-white p-3 text-center mb-3">
-      <p class="fs-5 mb-0">Aplikasi Bell Sekolah</p>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ff5722" />
+  <title>Jadwal Bel</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+
+<body>
+  <div class="bg-white p-3 text-center mb-3">
+    <p class="fs-5 mb-0">Aplikasi Bell Sekolah</p>
+  </div>
+
+  <div class="container main-container">
+    <div class="mb-4">
+      <a class="quick-action-btn text-decoration-none" href="{{ url_for('schedule') }}"><i
+          class="fa-solid fa-arrow-left"></i> Kembali</a>
     </div>
+    <div class="dashboard-card mb-3">
+      <p class="mb-3 fs-4 text-center">Edit Jadwal Bel</p>
+      <hr />
 
-    <div class="container main-container">
-      <div class="mb-4">
-        <a
-          class="quick-action-btn text-decoration-none"
-          href="{{ url_for('schedule') }}"
-          ><i class="fa-solid fa-arrow-left"></i> Kembali</a
-        >
-      </div>
-      <div class="dashboard-card mb-3">
-        <p class="mb-3 fs-4 text-center fw-bold"><i class="fas fa-edit me-2"></i>Edit Jadwal</p>
-        <hr />
-        <p class="mb-3 fs-4 text-center">Edit Jadwal Bel</p>
-        <hr />
+      <form method="POST">
+        <!-- Pilih Hari -->
+        <div class="mb-3">
+          <label class="form-label">Hari (Bisa lebih dari satu)</label>
+          <div class="border rounded p-3 mb-2" style="background-color: #f8f9fa">
+            {% set selected_days = schedule[1].split(',') if schedule[1] else [] %}
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Senin" id="daySen" {% if 'Senin' in
+                selected_days %}checked{% endif %}>
+              <label class="form-check-label" for="daySen">Senin</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Selasa" id="daySel" {% if 'Selasa' in
+                selected_days %}checked{% endif %}>
+              <label class="form-check-label" for="daySel">Selasa</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Rabu" id="dayRab" {% if 'Rabu' in
+                selected_days %}checked{% endif %}>
+              <label class="form-check-label" for="dayRab">Rabu</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Kamis" id="dayKam" {% if 'Kamis' in
+                selected_days %}checked{% endif %}>
+              <label class="form-check-label" for="dayKam">Kamis</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Jumat" id="dayJum" {% if 'Jumat' in
+                selected_days %}checked{% endif %}>
+              <label class="form-check-label" for="dayJum">Jumat</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Sabtu" id="daySab" {% if 'Sabtu' in
+                selected_days %}checked{% endif %}>
+              <label class="form-check-label" for="daySab">Sabtu</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Minggu" id="dayMin" {% if 'Minggu' in
+                selected_days %}checked{% endif %}>
+              <label class="form-check-label" for="dayMin">Minggu</label>
+            </div>
+          </div>
+          <small class="text-muted">
+            <i class="fas fa-info-circle"></i> Pilih minimal 1 hari. Jadwal lama akan diganti.
+          </small>
+        </div>
 
-        <form method="POST">
-          <!-- Pilih Hari -->
-          <div class="mb-3">
-            <label for="day" class="form-label">Hari</label>
-            <select class="form-control" id="day" name="day" required>
-              <option selected disabled>--- pilih hari ---</option>
-              {% for h in ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"] %}
-              <option value="{{ h }}" {% if h == schedule[1] %}selected{% endif %}>{{ h }}</option>
+        <!-- Jam -->
+        <div class="mb-3">
+          <label for="time" class="form-label">Jam</label>
+          <input type="time" id="time" name="time" class="form-control" value="{{ schedule[2] }}" required />
+        </div>
+
+        <!-- Aktivitas -->
+        <div class="mb-3">
+          <label for="activity" class="form-label">Aktivitas</label>
+          <input type="text" id="activity" name="activity" class="form-control" value="{{ schedule[3] }}" required />
+        </div>
+
+        <!-- File Sound -->
+        <div class="mb-3">
+          <label for="sound_file" class="form-label">File Sound / Playlist</label>
+          <select id="sound_file" name="sound_file" class="form-control" required>
+            <option selected disabled>--- pilih sound/playlist ---</option>
+            <optgroup label="Sound (Single File)">
+              {% for s in sounds %}
+              <option value="{{ s[0] }}" {% if s[0]==schedule[4] %}selected{% endif %}>🔊 {{ s[0] }}</option>
               {% endfor %}
-            </select>
-            <small class="text-muted">
-              <i class="fas fa-info-circle"></i> Untuk menambah jadwal di beberapa hari sekaligus, gunakan menu 
-              <a href="{{ url_for('add_schedule') }}">Tambah Jadwal Baru</a>
-            </small>
-          </div>
-
-          <!-- Jam -->
-          <div class="mb-3">
-            <label for="time" class="form-label">Jam</label>
-            <input
-              type="time"
-              id="time"
-              name="time"
-              class="form-control"
-              value="{{ schedule[2] }}"
-              required
-            />
-          </div>
-
-          <!-- Aktivitas -->
-          <div class="mb-3">
-            <label for="activity" class="form-label">Aktivitas</label>
-            <input
-              type="text"
-              id="activity"
-              name="activity"
-              class="form-control"
-              value="{{ schedule[3] }}"
-              required
-            />
-          </div>
-
-          <!-- File Sound -->
-          <div class="mb-3">
-            <label for="sound_file" class="form-label">File Sound / Playlist</label>
-            <select
-              id="sound_file"
-              name="sound_file"
-              class="form-control"
-              required
-            >
-              <option selected disabled>--- pilih sound/playlist ---</option>
-              <optgroup label="Sound (Single File)">
-                {% for s in sounds %}
-                <option value="{{ s[0] }}" {% if s[0] == schedule[4] %}selected{% endif %}>🔊 {{ s[0] }}</option>
-                {% endfor %}
-              </optgroup>
-              <optgroup label="Playlist (Multiple Files)">
-                {% for playlist in playlists %}
-                <option value="playlist:{{ playlist[0] }}" {% if 'playlist:' + playlist[0]|string == schedule[4] %}selected{% endif %}>
-                  📋 {{ playlist[1] }} ({{ playlist[5] }} file)
-                </option>
-                {% endfor %}
-              </optgroup>
-            </select>
-          </div>
-
-          <!-- Kategori -->
-          <div class="mb-3">
-            <label for="category" class="form-label">Kategori</label>
-            <select
-              id="category"
-              name="category"
-              class="form-select"
-              required
-            >
-              {% for cat in categories %}
-              <option value="{{ cat[1] }}" style="color: {{ cat[3] }}" {% if cat[1] == schedule[5] %}selected{% endif %}>
-                {{ cat[1]|upper }} - {{ cat[2] or cat[1] }}
+            </optgroup>
+            <optgroup label="Playlist (Multiple Files)">
+              {% for playlist in playlists %}
+              <option value="playlist:{{ playlist[0] }}" {% if 'playlist:' + playlist[0]|string==schedule[4]
+                %}selected{% endif %}>
+                📋 {{ playlist[1] }} ({{ playlist[5] }} file)
               </option>
               {% endfor %}
-            </select>
-          </div>
+            </optgroup>
+          </select>
+        </div>
 
-          <!-- Tombol -->
-          <button type="submit" class="quick-action-btn">Simpan</button>
-        </form>
-      </div>
+        <!-- Kategori -->
+        <div class="mb-3">
+          <label for="category" class="form-label">Kategori</label>
+          <select id="category" name="category" class="form-select" required>
+            {% for cat in categories %}
+            <option value="{{ cat[1] }}" style="color: {{ cat[3] }}" {% if cat[1]==schedule[5] %}selected{% endif %}>
+              {{ cat[1]|upper }} - {{ cat[2] or cat[1] }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Tombol -->
+        <button type="submit" class="quick-action-btn">Simpan</button>
+      </form>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>

@@ -1,181 +1,128 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ff5722" />
-    <title>Jadwal Bel</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
 
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="/static/css/style.css" />
-  </head>
-  <body>
-    <div class="bg-white p-3 text-center mb-3">
-      <p class="fs-5 mb-0">Aplikasi Bell Sekolah</p>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ff5722" />
+  <title>Jadwal Bel</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+
+<body>
+  <div class="bg-white p-3 text-center mb-3">
+    <p class="fs-5 mb-0">Aplikasi Bell Sekolah</p>
+  </div>
+
+  <div class="container main-container">
+    <div class="mb-4">
+      <a class="quick-action-btn text-decoration-none" href="{{ url_for('schedule') }}"><i
+          class="fa-solid fa-arrow-left"></i>
+        Kembali</a>
     </div>
-
-    <div class="container main-container">
-      <div class="mb-4">
-        <a class="quick-action-btn text-decoration-none" href="/"
-          ><i class="fa-solid fa-arrow-left"></i> Kembali</a
-        >
-      </div>
-      <div class="status-card">
-        <p class="mb-3 fs-4 text-center">Tambah Jadwal Bel</p>
-        <hr />
-        <form method="POST" class="row g-3">
-          <div class="col-12 col-md-8">
-            <label>Pilih Hari (Bisa lebih dari satu)</label>
-            <div
-              class="border rounded p-3 mb-2"
-              style="background-color: #f8f9fa"
-            >
-              <div class="form-check form-check-inline">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  name="days"
-                  value="Senin"
-                  id="daySen"
-                />
-                <label class="form-check-label" for="daySen">Senin</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  name="days"
-                  value="Selasa"
-                  id="daySel"
-                />
-                <label class="form-check-label" for="daySel">Selasa</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  name="days"
-                  value="Rabu"
-                  id="dayRab"
-                />
-                <label class="form-check-label" for="dayRab">Rabu</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  name="days"
-                  value="Kamis"
-                  id="dayKam"
-                />
-                <label class="form-check-label" for="dayKam">Kamis</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  name="days"
-                  value="Jumat"
-                  id="dayJum"
-                />
-                <label class="form-check-label" for="dayJum">Jumat</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  name="days"
-                  value="Sabtu"
-                  id="daySab"
-                />
-                <label class="form-check-label" for="daySab">Sabtu</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  name="days"
-                  value="Minggu"
-                  id="dayMin"
-                />
-                <label class="form-check-label" for="dayMin">Minggu</label>
-              </div>
+    <div class="status-card">
+      <p class="mb-3 fs-4 text-center">Tambah Jadwal Bel</p>
+      <hr />
+      <form method="POST" class="row g-3">
+        <div class="col-12">
+          <label>Pilih Hari (Bisa lebih dari satu)</label>
+          <div class="border rounded p-3 mb-2" style="background-color: #f8f9fa">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Senin" id="daySen" />
+              <label class="form-check-label" for="daySen">Senin</label>
             </div>
-            <small class="text-muted">
-              <i class="fas fa-info-circle"></i> Pilih minimal 1 hari. Pilih
-              beberapa hari untuk membuat jadwal yang sama di hari tersebut.
-            </small>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Selasa" id="daySel" />
+              <label class="form-check-label" for="daySel">Selasa</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Rabu" id="dayRab" />
+              <label class="form-check-label" for="dayRab">Rabu</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Kamis" id="dayKam" />
+              <label class="form-check-label" for="dayKam">Kamis</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Jumat" id="dayJum" />
+              <label class="form-check-label" for="dayJum">Jumat</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Sabtu" id="daySab" />
+              <label class="form-check-label" for="daySab">Sabtu</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="days" value="Minggu" id="dayMin" />
+              <label class="form-check-label" for="dayMin">Minggu</label>
+            </div>
           </div>
-          <div class="col-12 col-md-6">
-            <label>Waktu (HH:MM)</label>
-            <input type="time" name="time" class="form-control" required />
-          </div>
-          <div class="col-12 col-md-6">
-            <label>Nama Kegiatan</label>
-            <input type="text" name="activity" class="form-control" required />
-          </div>
-          <div class="col-12 col-md-6">
-            <label>Suara Bel / Playlist</label>
-            <select
-              name="sound_file"
-              class="form-control"
-              id="soundSelect"
-              required
-            >
-              <option disabled selected>--- pilih sound/playlist ---</option>
-              <optgroup label="Sound (Single File)">
-                {% for sound in sounds %}
-                <option value="{{ sound[0] }}">🔊 {{ sound[0] }}</option>
-                {% endfor %}
-              </optgroup>
-              <optgroup label="Playlist (Multiple Files)">
-                {% for playlist in playlists %}
-                <option value="playlist:{{ playlist[0] }}">
-                  📋 {{ playlist[1] }} ({{ playlist[5] }} file)
-                </option>
-                {% endfor %}
-              </optgroup>
-            </select>
-          </div>
-          <div class="col-12 col-md-6">
-            <label>Kategori</label>
-            <select name="category" class="form-select">
-              {% for cat in categories %}
-              <option value="{{ cat[1] }}" style="color: {{ cat[3] }}">
-                {{ cat[1]|upper }} - {{ cat[2] or cat[1] }}
+          <small class="text-muted">
+            <i class="fas fa-info-circle"></i> Pilih minimal 1 hari. Pilih
+            beberapa hari untuk membuat jadwal yang sama di hari tersebut.
+          </small>
+        </div>
+        <div class="col-12 col-md-6">
+          <label>Waktu (HH:MM)</label>
+          <input type="time" name="time" class="form-control" required />
+        </div>
+        <div class="col-12 col-md-6">
+          <label>Nama Kegiatan</label>
+          <input type="text" name="activity" class="form-control" required />
+        </div>
+        <div class="col-12 col-md-6">
+          <label>Suara Bel / Playlist</label>
+          <select name="sound_file" class="form-control" id="soundSelect" required>
+            <option disabled selected>--- pilih sound/playlist ---</option>
+            <optgroup label="Sound (Single File)">
+              {% for sound in sounds %}
+              <option value="{{ sound[0] }}">🔊 {{ sound[0] }}</option>
+              {% endfor %}
+            </optgroup>
+            <optgroup label="Playlist (Multiple Files)">
+              {% for playlist in playlists %}
+              <option value="playlist:{{ playlist[0] }}">
+                📋 {{ playlist[1] }} ({{ playlist[5] }} file)
               </option>
               {% endfor %}
-            </select>
-          </div>
-          <div class="col-12">
-            <button type="submit" class="quick-action-btn">
-              <i class="fa-solid fa-download"></i> Simpan Jadwal
-            </button>
-          </div>
-        </form>
-      </div>
+            </optgroup>
+          </select>
+        </div>
+        <div class="col-12 col-md-6">
+          <label>Kategori</label>
+          <select name="category" class="form-select">
+            {% for cat in categories %}
+            <option value="{{ cat[1] }}" style="color: {{ cat[3] }}">
+              {{ cat[1]|upper }} - {{ cat[2] or cat[1] }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="quick-action-btn">
+            <i class="fa-solid fa-download"></i> Simpan Jadwal
+          </button>
+        </div>
+      </form>
     </div>
-  </body>
-  <script>
-    // Add info message when playlist is selected
-    document
-      .getElementById("soundSelect")
-      .addEventListener("change", function () {
-        const selected = this.options[this.selectedIndex];
-        if (selected.value.startsWith("playlist:")) {
-          alert(
-            'Playlist dipilih: "' +
-              selected.text.replace("📋 ", "") +
-              '"\\n\\nSemua file dalam playlist akan diputar berurutan.',
-          );
-        }
-      });
-  </script>
+  </div>
+</body>
+<script>
+  // Add info message when playlist is selected
+  document
+    .getElementById("soundSelect")
+    .addEventListener("change", function () {
+      const selected = this.options[this.selectedIndex];
+      if (selected.value.startsWith("playlist:")) {
+        alert(
+          'Playlist dipilih: "' +
+          selected.text.replace("📋 ", "") +
+          '"\\n\\nSemua file dalam playlist akan diputar berurutan.',
+        );
+      }
+    });
+</script>
+
 </html>

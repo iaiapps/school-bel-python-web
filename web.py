@@ -322,23 +322,39 @@ def edit_schedule(schedule_id):
         cur = conn.cursor()
 
         if request.method == "POST":
-            day = request.form.get("day")
+            days = request.form.getlist("days")
             time_val = request.form.get("time")
             activity = request.form.get("activity", "").strip()
             sound_file = request.form.get("sound_file")
             category = request.form.get("category", "normal")
 
-            if not all([day, time_val, activity, sound_file]):
+            if not days or not time_val or not activity or not sound_file:
                 flash("Semua field wajib diisi.", "danger")
                 return redirect(url_for("edit_schedule", schedule_id=schedule_id))
 
-            cur.execute("""
-                UPDATE schedules
-                SET day_of_week=?, time=?, activity=?, sound_file=?, category=?
-                WHERE id=?
-            """, (day, time_val, activity, sound_file, category, schedule_id))
+            # Validasi schedule exists
+            cur.execute("SELECT id FROM schedules WHERE id=?", (schedule_id,))
+            if not cur.fetchone():
+                flash("Jadwal tidak ditemukan.", "danger")
+                return redirect(url_for("schedule"))
+
+            # Hapus jadwal lama
+            cur.execute("DELETE FROM schedules WHERE id=?", (schedule_id,))
+            
+            # Insert jadwal baru untuk setiap hari
+            inserted_count = 0
+            for day in days:
+                try:
+                    cur.execute("""
+                        INSERT INTO schedules (day_of_week, time, activity, sound_file, category)
+                        VALUES (?, ?, ?, ?, ?)
+                    """, (day, time_val, activity, sound_file, category))
+                    inserted_count += 1
+                except Exception as e:
+                    print(f"Error inserting for {day}: {e}")
+            
             conn.commit()
-            flash("Jadwal berhasil diperbarui.", "success")
+            flash(f"Jadwal berhasil diperbarui untuk {inserted_count} hari.", "success")
             return redirect(url_for("schedule"))
 
         # kalau GET → ambil data lama

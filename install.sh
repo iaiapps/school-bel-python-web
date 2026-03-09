@@ -30,7 +30,7 @@ print_banner() {
     echo -e "${CYAN}"
     echo "+==============================================================+"
     echo "|                                                              |"
-    echo "|           🔔 APLIKASI BEL SEKOLAH - INSTALLER               |"
+    echo "|           🔔 APLIKASI BEL SEKOLAH - INSTALLER                |"
     echo "|                                                              |"
     echo "+==============================================================+"
     echo -e "${NC}"
@@ -252,6 +252,12 @@ fi
 print_success "Python packages terinstall"
 echo ""
 
+# Get actual user early for permissions
+ACTUAL_USER=${SUDO_USER:-$USER}
+if [ "$ACTUAL_USER" = "root" ] || [ -z "$ACTUAL_USER" ]; then
+    ACTUAL_USER=$(logname 2>/dev/null || echo "pi")
+fi
+
 # ==========================================
 # Step 5: Initialize Database
 # ==========================================
@@ -270,6 +276,15 @@ print_info "Setting database permissions..."
 chown -R ${ACTUAL_USER}:${ACTUAL_USER} database.db* 2>/dev/null || true
 chmod 644 database.db 2>/dev/null || true
 
+# Set permissions for venv folder
+print_info "Setting venv permissions..."
+chown -R ${ACTUAL_USER}:${ACTUAL_USER} venv/ 2>/dev/null || true
+chmod -R 755 venv/ 2>/dev/null || true
+
+# Set permissions for pycache (allow read+execute for all users)
+find . -type d -name "__pycache__" -exec chown -R ${ACTUAL_USER}:${ACTUAL_USER} {} \; 2>/dev/null || true
+find . -type d -name "__pycache__" -exec chmod -R 755 {} \; 2>/dev/null || true
+
 print_success "Database initialized"
 echo ""
 
@@ -278,11 +293,7 @@ echo ""
 # ==========================================
 print_info "[6/7] Setup auto-start service..."
 
-# Get actual user (not root)
-ACTUAL_USER=${SUDO_USER:-$USER}
-if [ "$ACTUAL_USER" = "root" ] || [ -z "$ACTUAL_USER" ]; then
-    ACTUAL_USER=$(logname 2>/dev/null || echo "pi")
-fi
+# ACTUAL_USER already defined in Step 5
 
 # Create systemd service file
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}"
@@ -326,10 +337,10 @@ print_success "Auto-start enabled"
 
 # Set correct permissions for all files
 print_info "Setting file permissions..."
-chown -R ${ACTUAL_USER}:${ACTUAL_USER} /home/${ACTUAL_USER}/bel 2>/dev/null || true
-find /home/${ACTUAL_USER}/bel -type d -exec chmod 755 {} \;
-find /home/${ACTUAL_USER}/bel -type f -exec chmod 644 {} \;
-chmod +x /home/${ACTUAL_USER}/bel/*.sh 2>/dev/null || true
+chown -R ${ACTUAL_USER}:${ACTUAL_USER} "${SCRIPT_DIR}" 2>/dev/null || true
+find "${SCRIPT_DIR}" -type d -exec chmod 755 {} \;
+find "${SCRIPT_DIR}" -type f -exec chmod 644 {} \;
+chmod +x "${SCRIPT_DIR}"/*.sh 2>/dev/null || true
 
 # Start service
 systemctl start "${SERVICE_NAME}"
@@ -407,6 +418,9 @@ IP Address: ${IP_ADDRESS}
 EOF
 
 print_success "Info akses disimpan: access-info.txt"
+
+# Set correct ownership for generated files
+chown -R ${ACTUAL_USER}:${ACTUAL_USER} access-qr.png qr-terminal.txt access-info.txt 2>/dev/null || true
 echo ""
 
 # ==========================================

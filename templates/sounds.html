@@ -1,453 +1,374 @@
 <!doctype html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ff5722" />
-    <title>Manage Sounds - Aplikasi Bel Sekolah</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="/static/css/style.css" />
-    <style>
-      .folder-header {
-        background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
-        color: white;
-        padding: 10px 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        cursor: pointer;
-      }
-      .folder-header:hover {
-        opacity: 0.9;
-      }
-      .sound-item {
-        transition: background-color 0.2s;
-      }
-      .sound-item:hover {
-        background-color: #fff3e0;
-      }
-      .drag-drop-area {
-        border: 2px dashed #ff5722 !important;
-        background-color: #fff3e0;
-        transition: all 0.3s;
-      }
-      .drag-drop-area:hover {
-        background-color: #ffe0b2;
-      }
-      .drag-drop-area.dragover {
-        background-color: #ffcc80;
-        border-color: #e65100 !important;
-      }
-      .stats-card {
-        transition: transform 0.2s;
-      }
-      .stats-card:hover {
-        transform: translateY(-5px);
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container main-container">
-      <!-- Navigation -->
-      <div class="bg-white shadow-sm p-3 mb-4">
-        <div
-          class="container d-flex justify-content-between align-items-center"
-        >
-          <p class="fs-5 mb-0 fw-bold">Manage Sounds</p>
-          <div>
-            <a href="/settings" class="btn btn-sm btn-outline-primary me-2">
-              <i class="fas fa-cog"></i> Pengaturan
-            </a>
-            <a href="/logout" class="btn btn-sm btn-outline-danger">
-              <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-          </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ff5722" />
+  <title>Manage Sounds - Aplikasi Bel Sekolah</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <style>
+    .folder-header {
+      background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      cursor: pointer;
+    }
+
+    .folder-header:hover {
+      opacity: 0.9;
+    }
+
+    .sound-item {
+      transition: background-color 0.2s;
+    }
+
+    .sound-item:hover {
+      background-color: #fff3e0;
+    }
+
+    .drag-drop-area {
+      border: 2px dashed #ff5722 !important;
+      background-color: #fff3e0;
+      transition: all 0.3s;
+    }
+
+    .drag-drop-area:hover {
+      background-color: #ffe0b2;
+    }
+
+    .drag-drop-area.dragover {
+      background-color: #ffcc80;
+      border-color: #e65100 !important;
+    }
+
+    .stats-card {
+      transition: transform 0.2s;
+    }
+
+    .stats-card:hover {
+      transform: translateY(-5px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container main-container">
+    <!-- Navigation -->
+    <div class="bg-white shadow-sm p-3 mb-4">
+      <div class="container d-flex justify-content-between align-items-center">
+        <p class="fs-5 mb-0 fw-bold">Manage Sounds</p>
+        <div>
+          <a href="/settings" class="btn btn-sm btn-outline-primary me-2">
+            <i class="fas fa-cog"></i>
+          </a>
+          <a href="/logout" class="btn btn-sm btn-outline-danger">
+            <i class="fas fa-sign-out-alt"></i>
+          </a>
         </div>
       </div>
+    </div>
 
-      <!-- Back Button -->
-      <div class="mb-4">
-        <a href="/" class="quick-action-btn text-decoration-none">
-          <i class="fas fa-arrow-left"></i> Kembali
-        </a>
-      </div>
+    <!-- Back Button -->
+    <div class="mb-4">
+      <a href="/" class="quick-action-btn text-decoration-none">
+        <i class="fas fa-arrow-left"></i> Kembali
+      </a>
+    </div>
 
-      <!-- Alert -->
-      {% with messages = get_flashed_messages(with_categories=True) %} {% if
-      messages %} {% for category, message in messages %}
-      <div
-        class="alert alert-{{ category }} alert-dismissible fade show"
-        role="alert"
-      >
-        {{ message }}
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="alert"
-        ></button>
-      </div>
-      {% endfor %} {% endif %} {% endwith %}
+    <!-- Alert -->
+    {% with messages = get_flashed_messages(with_categories=True) %} {% if
+    messages %} {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %} {% endif %} {% endwith %}
 
-      <!-- Actions Bar -->
-      <div class="card mb-4">
-        <div class="card-body">
-          <div class="row g-3 align-items-center">
-            <div class="col-md-6">
-              <button class="btn btn-primary" onclick="syncSounds()">
-                <i class="fas fa-sync"></i> Sync Folder
+    <!-- Actions Bar -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-center">
+          <div class="col-md-6">
+            <button class="btn btn-primary" onclick="syncSounds()">
+              <i class="fas fa-sync"></i> Sync Folder
+            </button>
+            <button class="btn btn-outline-secondary" onclick="refreshList()">
+              <i class="fas fa-redo"></i> Refresh
+            </button>
+          </div>
+          <div class="col-md-6 text-end">
+            <div class="btn-group">
+              <button class="btn btn-success" onclick="showUploadModal()">
+                <i class="fas fa-upload"></i> Upload
               </button>
-              <button class="btn btn-outline-secondary" onclick="refreshList()">
-                <i class="fas fa-redo"></i> Refresh
+              <button class="btn btn-outline-primary" onclick="showFolderModal()">
+                <i class="fas fa-folder-plus"></i> New Folder
               </button>
             </div>
-            <div class="col-md-6 text-end">
-              <div class="btn-group">
-                <button class="btn btn-success" onclick="showUploadModal()">
-                  <i class="fas fa-upload"></i> Upload
-                </button>
-                <button
-                  class="btn btn-outline-primary"
-                  onclick="showFolderModal()"
-                >
-                  <i class="fas fa-folder-plus"></i> New Folder
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stats Cards -->
-      <div class="row mb-4" id="statsCards">
-        <div class="col-md-3">
-          <div class="card bg-primary text-white stats-card">
-            <div class="card-body text-center">
-              <h3 id="totalSounds" class="mb-0">0</h3>
-              <small>Total Sounds</small>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card bg-success text-white stats-card">
-            <div class="card-body text-center">
-              <h3 id="foldersCount" class="mb-0">0</h3>
-              <small>Folders</small>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card bg-info text-white stats-card">
-            <div class="card-body text-center">
-              <h3 id="newFilesPreview" class="mb-0">0</h3>
-              <small>New (Preview)</small>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card bg-warning text-white stats-card">
-            <div class="card-body text-center">
-              <h3 id="missingFilesPreview" class="mb-0">0</h3>
-              <small>Missing (Preview)</small>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Folder Structure -->
-      <div class="card mb-4">
-        <div class="card-header">
-          <i class="fas fa-folder-tree"></i> Folder Structure
-        </div>
-        <div class="card-body">
-          <div id="folderStructure">
-            <div class="text-center text-muted py-4">
-              <i class="fas fa-spinner fa-spin fa-2x"></i>
-              <p class="mt-2">Loading...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- List View -->
-      <div class="card">
-        <div class="card-header"><i class="fas fa-list"></i> All Sounds</div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th width="50">
-                    <input
-                      type="checkbox"
-                      id="selectAll"
-                      onchange="toggleSelectAll()"
-                    />
-                  </th>
-                  <th>Name</th>
-                  <th>Path</th>
-                  <th width="150">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="soundsTable">
-                <tr>
-                  <td colspan="4" class="text-center text-muted py-4">
-                    <i class="fas fa-spinner fa-spin fa-2x"></i>
-                    <p class="mt-2">Loading sounds...</p>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Sync Preview Modal -->
-    <div class="modal fade" id="syncModal" tabindex="-1">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-sync"></i> Sync Preview
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
+    <!-- Stats Cards -->
+    <div class="row mb-4" id="statsCards">
+      <div class="col-md-3">
+        <div class="card bg-primary text-white stats-card">
+          <div class="card-body text-center">
+            <h3 id="totalSounds" class="mb-0">0</h3>
+            <small>Total Sounds</small>
           </div>
-          <div class="modal-body">
-            <div class="alert alert-info">
-              <i class="fas fa-info-circle"></i>
-              Preview menunjukkan perubahan yang akan dilakukan ke database.
-            </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-success text-white stats-card">
+          <div class="card-body text-center">
+            <h3 id="foldersCount" class="mb-0">0</h3>
+            <small>Folders</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-info text-white stats-card">
+          <div class="card-body text-center">
+            <h3 id="newFilesPreview" class="mb-0">0</h3>
+            <small>New (Preview)</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-warning text-white stats-card">
+          <div class="card-body text-center">
+            <h3 id="missingFilesPreview" class="mb-0">0</h3>
+            <small>Missing (Preview)</small>
+          </div>
+        </div>
+      </div>
+    </div>
 
-            <div class="row">
-              <div class="col-md-4">
-                <div class="card bg-success text-white mb-3">
-                  <div class="card-body text-center">
-                    <h4 id="previewNew">0</h4>
-                    <small>New Files</small>
-                  </div>
+    <!-- Folder Structure -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <i class="fas fa-folder-tree"></i> Folder Structure
+      </div>
+      <div class="card-body">
+        <div id="folderStructure">
+          <div class="text-center text-muted py-4">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p class="mt-2">Loading...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- List View -->
+    <div class="card">
+      <div class="card-header"><i class="fas fa-list"></i> All Sounds</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th width="50">
+                  <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" />
+                </th>
+                <th>Name</th>
+                <th>Path</th>
+                <th width="150">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="soundsTable">
+              <tr>
+                <td colspan="4" class="text-center text-muted py-4">
+                  <i class="fas fa-spinner fa-spin fa-2x"></i>
+                  <p class="mt-2">Loading sounds...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sync Preview Modal -->
+  <div class="modal fade" id="syncModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-sync"></i> Sync Preview
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Preview menunjukkan perubahan yang akan dilakukan ke database.
+          </div>
+
+          <div class="row">
+            <div class="col-md-4">
+              <div class="card bg-success text-white mb-3">
+                <div class="card-body text-center">
+                  <h4 id="previewNew">0</h4>
+                  <small>New Files</small>
                 </div>
               </div>
-              <div class="col-md-4">
-                <div class="card bg-warning text-white mb-3">
-                  <div class="card-body text-center">
-                    <h4 id="previewMissing">0</h4>
-                    <small>Missing Files</small>
-                  </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card bg-warning text-white mb-3">
+                <div class="card-body text-center">
+                  <h4 id="previewMissing">0</h4>
+                  <small>Missing Files</small>
                 </div>
               </div>
-              <div class="col-md-4">
-                <div class="card bg-secondary text-white mb-3">
-                  <div class="card-body text-center">
-                    <h4 id="previewUnchanged">0</h4>
-                    <small>Unchanged</small>
-                  </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card bg-secondary text-white mb-3">
+                <div class="card-body text-center">
+                  <h4 id="previewUnchanged">0</h4>
+                  <small>Unchanged</small>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <h6>📥 New Files (akan ditambahkan):</h6>
+            <ul id="previewNewList" class="list-group" style="max-height: 150px; overflow-y: auto"></ul>
+          </div>
+
+          <div class="mb-3">
+            <h6>📤 Missing Files (tidak ada di folder):</h6>
+            <ul id="previewMissingList" class="list-group" style="max-height: 150px; overflow-y: auto"></ul>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="deleteMissing" />
+            <label class="form-check-label" for="deleteMissing">
+              Hapus file yang tidak ada di folder dari database
+            </label>
+            <small class="text-muted d-block">Jika tidak dicentang, file hanya ditandai sebagai
+              missing</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-primary" onclick="executeSync()">
+            <i class="fas fa-check"></i> Sync Now
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-upload"></i> Upload Sounds
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="uploadForm" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label class="form-label">Select Folder</label>
+              <select class="form-select" id="uploadFolder">
+                <option value="root">/ (Root)</option>
+              </select>
             </div>
 
             <div class="mb-3">
-              <h6>📥 New Files (akan ditambahkan):</h6>
-              <ul
-                id="previewNewList"
-                class="list-group"
-                style="max-height: 150px; overflow-y: auto"
-              ></ul>
-            </div>
-
-            <div class="mb-3">
-              <h6>📤 Missing Files (tidak ada di folder):</h6>
-              <ul
-                id="previewMissingList"
-                class="list-group"
-                style="max-height: 150px; overflow-y: auto"
-              ></ul>
-            </div>
-
-            <div class="form-check">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="deleteMissing"
-              />
-              <label class="form-check-label" for="deleteMissing">
-                Hapus file yang tidak ada di folder dari database
-              </label>
-              <small class="text-muted d-block"
-                >Jika tidak dicentang, file hanya ditandai sebagai
-                missing</small
-              >
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              onclick="executeSync()"
-            >
-              <i class="fas fa-check"></i> Sync Now
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Upload Modal -->
-    <div class="modal fade" id="uploadModal" tabindex="-1">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-upload"></i> Upload Sounds
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form id="uploadForm" enctype="multipart/form-data">
-              <div class="mb-3">
-                <label class="form-label">Select Folder</label>
-                <select class="form-select" id="uploadFolder">
-                  <option value="root">/ (Root)</option>
-                </select>
+              <label class="form-label">Audio Files (MP3/WAV)</label>
+              <div class="border rounded p-4 text-center drag-drop-area" id="dropZone"
+                onclick="document.getElementById('audioFiles').click()">
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                <p class="mb-1">
+                  <strong>Drag & drop files here or click to browse</strong>
+                </p>
+                <small class="text-muted">Max 50 files, 10MB each</small>
+                <input type="file" id="audioFiles" name="files" multiple accept=".mp3,.wav" style="display: none"
+                  onchange="updateFileList()" />
               </div>
-
-              <div class="mb-3">
-                <label class="form-label">Audio Files (MP3/WAV)</label>
-                <div
-                  class="border rounded p-4 text-center drag-drop-area"
-                  id="dropZone"
-                  onclick="document.getElementById('audioFiles').click()"
-                >
-                  <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                  <p class="mb-1">
-                    <strong>Drag & drop files here or click to browse</strong>
-                  </p>
-                  <small class="text-muted">Max 50 files, 10MB each</small>
-                  <input
-                    type="file"
-                    id="audioFiles"
-                    name="files"
-                    multiple
-                    accept=".mp3,.wav"
-                    style="display: none"
-                    onchange="updateFileList()"
-                  />
-                </div>
-                <div id="fileList" class="mt-2"></div>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="btn btn-success"
-              onclick="uploadFiles()"
-            >
-              <i class="fas fa-upload"></i> Upload
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- New Folder Modal -->
-    <div class="modal fade" id="folderModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-folder-plus"></i> New Folder
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label">Folder Name</label>
-              <input
-                type="text"
-                class="form-control"
-                id="newFolderName"
-                placeholder="e.g., murottal, bel, doa"
-              />
-              <small class="text-muted"
-                >Huruf kecil, angka, dan strip saja</small
-              >
+              <div id="fileList" class="mt-2"></div>
             </div>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              onclick="createFolder()"
-            >
-              <i class="fas fa-plus"></i> Create Folder
-            </button>
-          </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-success" onclick="uploadFiles()">
+            <i class="fas fa-upload"></i> Upload
+          </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      let currentSounds = [];
-      let syncPreview = null;
+  <!-- New Folder Modal -->
+  <div class="modal fade" id="folderModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-folder-plus"></i> New Folder
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Folder Name</label>
+            <input type="text" class="form-control" id="newFolderName" placeholder="e.g., murottal, bel, doa" />
+            <small class="text-muted">Huruf kecil, angka, dan strip saja</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-primary" onclick="createFolder()">
+            <i class="fas fa-plus"></i> Create Folder
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-      // Load on page load
-      document.addEventListener("DOMContentLoaded", () => {
-        loadSounds();
-        loadFolders();
-        setupDragDrop();
-      });
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let currentSounds = [];
+    let syncPreview = null;
 
-      // Load sounds list
-      async function loadSounds() {
-        try {
-          const res = await fetch("/api/sounds");
-          currentSounds = await res.json();
+    // Load on page load
+    document.addEventListener("DOMContentLoaded", () => {
+      loadSounds();
+      loadFolders();
+      setupDragDrop();
+    });
 
-          const tbody = document.getElementById("soundsTable");
-          tbody.innerHTML = "";
+    // Load sounds list
+    async function loadSounds() {
+      try {
+        const res = await fetch("/api/sounds");
+        currentSounds = await res.json();
 
-          if (currentSounds.length === 0) {
-            tbody.innerHTML = `
+        const tbody = document.getElementById("soundsTable");
+        tbody.innerHTML = "";
+
+        if (currentSounds.length === 0) {
+          tbody.innerHTML = `
                     <tr>
                         <td colspan="4" class="text-center text-muted py-4">
                             <i class="fas fa-music fa-2x mb-3"></i>
@@ -455,14 +376,14 @@
                         </td>
                     </tr>
                 `;
-            document.getElementById("totalSounds").textContent = "0";
-            return;
-          }
+          document.getElementById("totalSounds").textContent = "0";
+          return;
+        }
 
-          currentSounds.forEach((sound) => {
-            const tr = document.createElement("tr");
-            tr.className = "sound-item";
-            tr.innerHTML = `
+        currentSounds.forEach((sound) => {
+          const tr = document.createElement("tr");
+          tr.className = "sound-item";
+          tr.innerHTML = `
                     <td><input type="checkbox" class="sound-checkbox" value="${sound.id}"></td>
                     <td><strong>${sound.name}</strong></td>
                     <td><small class="text-muted">${sound.file_name}</small></td>
@@ -475,58 +396,58 @@
                         </button>
                     </td>
                 `;
-            tbody.appendChild(tr);
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("totalSounds").textContent =
+          currentSounds.length;
+      } catch (err) {
+        console.error("Error loading sounds:", err);
+        alert("Error loading sounds");
+      }
+    }
+
+    // Load folders
+    async function loadFolders() {
+      try {
+        const res = await fetch("/api/sounds/folders");
+        const folders = await res.json();
+
+        const select = document.getElementById("uploadFolder");
+        select.innerHTML = '<option value="root">/ (Root)</option>';
+        folders
+          .filter((f) => f !== "root")
+          .forEach((f) => {
+            select.innerHTML += `<option value="${f}">${f}/</option>`;
           });
 
-          document.getElementById("totalSounds").textContent =
-            currentSounds.length;
-        } catch (err) {
-          console.error("Error loading sounds:", err);
-          alert("Error loading sounds");
-        }
+        document.getElementById("foldersCount").textContent =
+          folders.length - 1;
+
+        // Update folder structure display
+        displayFolderStructure(folders);
+      } catch (err) {
+        console.error("Error loading folders:", err);
+      }
+    }
+
+    // Display folder structure
+    function displayFolderStructure(folders) {
+      const container = document.getElementById("folderStructure");
+      const nonRootFolders = folders.filter((f) => f !== "root");
+
+      if (nonRootFolders.length === 0) {
+        container.innerHTML =
+          '<div class="text-muted">No folders yet. Create a folder to organize sounds.</div>';
+        return;
       }
 
-      // Load folders
-      async function loadFolders() {
-        try {
-          const res = await fetch("/api/sounds/folders");
-          const folders = await res.json();
-
-          const select = document.getElementById("uploadFolder");
-          select.innerHTML = '<option value="root">/ (Root)</option>';
-          folders
-            .filter((f) => f !== "root")
-            .forEach((f) => {
-              select.innerHTML += `<option value="${f}">${f}/</option>`;
-            });
-
-          document.getElementById("foldersCount").textContent =
-            folders.length - 1;
-
-          // Update folder structure display
-          displayFolderStructure(folders);
-        } catch (err) {
-          console.error("Error loading folders:", err);
-        }
-      }
-
-      // Display folder structure
-      function displayFolderStructure(folders) {
-        const container = document.getElementById("folderStructure");
-        const nonRootFolders = folders.filter((f) => f !== "root");
-
-        if (nonRootFolders.length === 0) {
-          container.innerHTML =
-            '<div class="text-muted">No folders yet. Create a folder to organize sounds.</div>';
-          return;
-        }
-
-        let html = '<div class="row">';
-        nonRootFolders.forEach((folder) => {
-          const count = currentSounds.filter((s) =>
-            s.file_name.startsWith(folder + "/"),
-          ).length;
-          html += `
+      let html = '<div class="row">';
+      nonRootFolders.forEach((folder) => {
+        const count = currentSounds.filter((s) =>
+          s.file_name.startsWith(folder + "/"),
+        ).length;
+        html += `
                 <div class="col-md-4 mb-3">
                     <div class="folder-header">
                         <i class="fas fa-folder me-2"></i>
@@ -535,287 +456,288 @@
                     </div>
                 </div>
             `;
+      });
+      html += "</div>";
+      container.innerHTML = html;
+    }
+
+    // Sync sounds
+    async function syncSounds() {
+      try {
+        const res = await fetch("/api/sounds/scan");
+        syncPreview = await res.json();
+
+        document.getElementById("previewNew").textContent =
+          syncPreview.new.length;
+        document.getElementById("previewMissing").textContent =
+          syncPreview.missing.length;
+        document.getElementById("previewUnchanged").textContent =
+          syncPreview.unchanged.length;
+        document.getElementById("newFilesPreview").textContent =
+          syncPreview.new.length;
+        document.getElementById("missingFilesPreview").textContent =
+          syncPreview.missing.length;
+
+        const newList = document.getElementById("previewNewList");
+        newList.innerHTML =
+          syncPreview.new.length > 0
+            ? syncPreview.new
+              .map((f) => `<li class="list-group-item">📄 ${f}</li>`)
+              .join("")
+            : '<li class="text-muted">None</li>';
+
+        const missingList = document.getElementById("previewMissingList");
+        missingList.innerHTML =
+          syncPreview.missing.length > 0
+            ? syncPreview.missing
+              .map((f) => `<li class="list-group-item">⚠️ ${f}</li>`)
+              .join("")
+            : '<li class="text-muted">None</li>';
+
+        new bootstrap.Modal(document.getElementById("syncModal")).show();
+      } catch (err) {
+        alert("Error scanning folder: " + err);
+      }
+    }
+
+    // Execute sync
+    async function executeSync() {
+      const deleteMissing = document.getElementById("deleteMissing").checked;
+
+      try {
+        const res = await fetch("/api/sounds/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ delete_missing: deleteMissing }),
         });
-        html += "</div>";
-        container.innerHTML = html;
-      }
 
-      // Sync sounds
-      async function syncSounds() {
-        try {
-          const res = await fetch("/api/sounds/scan");
-          syncPreview = await res.json();
+        const result = await res.json();
 
-          document.getElementById("previewNew").textContent =
-            syncPreview.new.length;
-          document.getElementById("previewMissing").textContent =
-            syncPreview.missing.length;
-          document.getElementById("previewUnchanged").textContent =
-            syncPreview.unchanged.length;
-          document.getElementById("newFilesPreview").textContent =
-            syncPreview.new.length;
-          document.getElementById("missingFilesPreview").textContent =
-            syncPreview.missing.length;
-
-          const newList = document.getElementById("previewNewList");
-          newList.innerHTML =
-            syncPreview.new.length > 0
-              ? syncPreview.new
-                  .map((f) => `<li class="list-group-item">📄 ${f}</li>`)
-                  .join("")
-              : '<li class="text-muted">None</li>';
-
-          const missingList = document.getElementById("previewMissingList");
-          missingList.innerHTML =
-            syncPreview.missing.length > 0
-              ? syncPreview.missing
-                  .map((f) => `<li class="list-group-item">⚠️ ${f}</li>`)
-                  .join("")
-              : '<li class="text-muted">None</li>';
-
-          new bootstrap.Modal(document.getElementById("syncModal")).show();
-        } catch (err) {
-          alert("Error scanning folder: " + err);
+        if (result.success) {
+          alert(
+            `✓ Sync complete!\nAdded: ${result.added}\nRemoved: ${result.removed}`,
+          );
+          bootstrap.Modal.getInstance(
+            document.getElementById("syncModal"),
+          ).hide();
+          loadSounds();
+        } else {
+          alert("✗ Error: " + result.message);
         }
+      } catch (err) {
+        alert("Error syncing: " + err);
+      }
+    }
+
+    // Upload files
+    function showUploadModal() {
+      document.getElementById("audioFiles").value = "";
+      document.getElementById("fileList").innerHTML = "";
+      new bootstrap.Modal(document.getElementById("uploadModal")).show();
+    }
+
+    function updateFileList() {
+      const input = document.getElementById("audioFiles");
+      const list = document.getElementById("fileList");
+
+      if (input.files.length === 0) {
+        list.innerHTML = "";
+        return;
       }
 
-      // Execute sync
-      async function executeSync() {
-        const deleteMissing = document.getElementById("deleteMissing").checked;
+      let html = '<div class="small"><strong>Selected files:</strong><br>';
+      Array.from(input.files).forEach((file, i) => {
+        const size = (file.size / 1024 / 1024).toFixed(2);
+        html += `${i + 1}. ${file.name} (${size} MB)<br>`;
+      });
+      html += "</div>";
+      list.innerHTML = html;
+    }
 
-        try {
-          const res = await fetch("/api/sounds/sync", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ delete_missing: deleteMissing }),
-          });
+    async function uploadFiles() {
+      const input = document.getElementById("audioFiles");
+      const folder = document.getElementById("uploadFolder").value;
 
-          const result = await res.json();
-
-          if (result.success) {
-            alert(
-              `✓ Sync complete!\nAdded: ${result.added}\nRemoved: ${result.removed}`,
-            );
-            bootstrap.Modal.getInstance(
-              document.getElementById("syncModal"),
-            ).hide();
-            loadSounds();
-          } else {
-            alert("✗ Error: " + result.message);
-          }
-        } catch (err) {
-          alert("Error syncing: " + err);
-        }
+      if (input.files.length === 0) {
+        alert("Select files first");
+        return;
       }
 
-      // Upload files
-      function showUploadModal() {
-        document.getElementById("audioFiles").value = "";
-        document.getElementById("fileList").innerHTML = "";
-        new bootstrap.Modal(document.getElementById("uploadModal")).show();
+      if (input.files.length > 50) {
+        alert("Maximum 50 files at once");
+        return;
       }
 
-      function updateFileList() {
-        const input = document.getElementById("audioFiles");
-        const list = document.getElementById("fileList");
+      const formData = new FormData();
+      formData.append("folder", folder);
+      Array.from(input.files).forEach((file) => {
+        formData.append("files", file);
+      });
 
-        if (input.files.length === 0) {
-          list.innerHTML = "";
-          return;
-        }
-
-        let html = '<div class="small"><strong>Selected files:</strong><br>';
-        Array.from(input.files).forEach((file, i) => {
-          const size = (file.size / 1024 / 1024).toFixed(2);
-          html += `${i + 1}. ${file.name} (${size} MB)<br>`;
+      try {
+        const res = await fetch("/api/sounds/upload", {
+          method: "POST",
+          body: formData,
         });
-        html += "</div>";
-        list.innerHTML = html;
+
+        const result = await res.json();
+
+        if (result.success) {
+          alert(`✓ Uploaded ${result.uploaded} files!`);
+          bootstrap.Modal.getInstance(
+            document.getElementById("uploadModal"),
+          ).hide();
+          loadSounds();
+        } else {
+          alert("✗ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Error uploading: " + err);
+      }
+    }
+
+    // Create folder
+    function showFolderModal() {
+      document.getElementById("newFolderName").value = "";
+      new bootstrap.Modal(document.getElementById("folderModal")).show();
+    }
+
+    async function createFolder() {
+      const name = document.getElementById("newFolderName").value.trim();
+
+      if (!name) {
+        alert("Enter folder name");
+        return;
       }
 
-      async function uploadFiles() {
-        const input = document.getElementById("audioFiles");
-        const folder = document.getElementById("uploadFolder").value;
+      try {
+        const res = await fetch("/api/sounds/folder", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
 
-        if (input.files.length === 0) {
-          alert("Select files first");
-          return;
+        const result = await res.json();
+
+        if (result.success) {
+          alert(`✓ Folder "${name}" created!`);
+          bootstrap.Modal.getInstance(
+            document.getElementById("folderModal"),
+          ).hide();
+          loadFolders();
+        } else {
+          alert("✗ Error: " + result.message);
         }
+      } catch (err) {
+        alert("Error creating folder: " + err);
+      }
+    }
 
-        if (input.files.length > 50) {
+    // Play sound
+    async function playSound(id) {
+      try {
+        const res = await fetch(`/api/sounds/play/${id}`, { method: "POST" });
+        const result = await res.json();
+
+        if (!result.success) {
+          alert("✗ " + result.message);
+        }
+      } catch (err) {
+        alert("Error playing sound: " + err);
+      }
+    }
+
+    // Delete sound
+    async function deleteSound(id) {
+      if (
+        !confirm(
+          "Delete this sound from database? File will remain in folder.",
+        )
+      )
+        return;
+
+      try {
+        const res = await fetch(`/api/sounds/${id}`, { method: "DELETE" });
+        const result = await res.json();
+
+        if (result.success) {
+          loadSounds();
+        } else {
+          alert("✗ Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Error deleting: " + err);
+      }
+    }
+
+    // Toggle select all
+    function toggleSelectAll() {
+      const selectAll = document.getElementById("selectAll");
+      document.querySelectorAll(".sound-checkbox").forEach((cb) => {
+        cb.checked = selectAll.checked;
+      });
+    }
+
+    // Refresh list
+    function refreshList() {
+      loadSounds();
+      loadFolders();
+    }
+
+    // Drag and drop setup
+    function setupDragDrop() {
+      const dropZone = document.getElementById("dropZone");
+
+      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+      });
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropZone.addEventListener(
+          eventName,
+          () => dropZone.classList.add("dragover"),
+          false,
+        );
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropZone.addEventListener(
+          eventName,
+          () => dropZone.classList.remove("dragover"),
+          false,
+        );
+      });
+
+      dropZone.addEventListener("drop", handleDrop, false);
+
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 50) {
           alert("Maximum 50 files at once");
           return;
         }
 
-        const formData = new FormData();
-        formData.append("folder", folder);
-        Array.from(input.files).forEach((file) => {
-          formData.append("files", file);
+        const input = document.getElementById("audioFiles");
+        const dataTransfer = new DataTransfer();
+
+        Array.from(files).forEach((file) => {
+          if (file.name.endsWith(".mp3") || file.name.endsWith(".wav")) {
+            dataTransfer.items.add(file);
+          }
         });
 
-        try {
-          const res = await fetch("/api/sounds/upload", {
-            method: "POST",
-            body: formData,
-          });
-
-          const result = await res.json();
-
-          if (result.success) {
-            alert(`✓ Uploaded ${result.uploaded} files!`);
-            bootstrap.Modal.getInstance(
-              document.getElementById("uploadModal"),
-            ).hide();
-            loadSounds();
-          } else {
-            alert("✗ Error: " + result.message);
-          }
-        } catch (err) {
-          alert("Error uploading: " + err);
-        }
+        input.files = dataTransfer.files;
+        updateFileList();
       }
+    }
+  </script>
+</body>
 
-      // Create folder
-      function showFolderModal() {
-        document.getElementById("newFolderName").value = "";
-        new bootstrap.Modal(document.getElementById("folderModal")).show();
-      }
-
-      async function createFolder() {
-        const name = document.getElementById("newFolderName").value.trim();
-
-        if (!name) {
-          alert("Enter folder name");
-          return;
-        }
-
-        try {
-          const res = await fetch("/api/sounds/folder", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name }),
-          });
-
-          const result = await res.json();
-
-          if (result.success) {
-            alert(`✓ Folder "${name}" created!`);
-            bootstrap.Modal.getInstance(
-              document.getElementById("folderModal"),
-            ).hide();
-            loadFolders();
-          } else {
-            alert("✗ Error: " + result.message);
-          }
-        } catch (err) {
-          alert("Error creating folder: " + err);
-        }
-      }
-
-      // Play sound
-      async function playSound(id) {
-        try {
-          const res = await fetch(`/api/sounds/play/${id}`, { method: "POST" });
-          const result = await res.json();
-
-          if (!result.success) {
-            alert("✗ " + result.message);
-          }
-        } catch (err) {
-          alert("Error playing sound: " + err);
-        }
-      }
-
-      // Delete sound
-      async function deleteSound(id) {
-        if (
-          !confirm(
-            "Delete this sound from database? File will remain in folder.",
-          )
-        )
-          return;
-
-        try {
-          const res = await fetch(`/api/sounds/${id}`, { method: "DELETE" });
-          const result = await res.json();
-
-          if (result.success) {
-            loadSounds();
-          } else {
-            alert("✗ Error: " + result.message);
-          }
-        } catch (err) {
-          alert("Error deleting: " + err);
-        }
-      }
-
-      // Toggle select all
-      function toggleSelectAll() {
-        const selectAll = document.getElementById("selectAll");
-        document.querySelectorAll(".sound-checkbox").forEach((cb) => {
-          cb.checked = selectAll.checked;
-        });
-      }
-
-      // Refresh list
-      function refreshList() {
-        loadSounds();
-        loadFolders();
-      }
-
-      // Drag and drop setup
-      function setupDragDrop() {
-        const dropZone = document.getElementById("dropZone");
-
-        ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
-          dropZone.addEventListener(eventName, preventDefaults, false);
-        });
-
-        function preventDefaults(e) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-
-        ["dragenter", "dragover"].forEach((eventName) => {
-          dropZone.addEventListener(
-            eventName,
-            () => dropZone.classList.add("dragover"),
-            false,
-          );
-        });
-
-        ["dragleave", "drop"].forEach((eventName) => {
-          dropZone.addEventListener(
-            eventName,
-            () => dropZone.classList.remove("dragover"),
-            false,
-          );
-        });
-
-        dropZone.addEventListener("drop", handleDrop, false);
-
-        function handleDrop(e) {
-          const dt = e.dataTransfer;
-          const files = dt.files;
-
-          if (files.length > 50) {
-            alert("Maximum 50 files at once");
-            return;
-          }
-
-          const input = document.getElementById("audioFiles");
-          const dataTransfer = new DataTransfer();
-
-          Array.from(files).forEach((file) => {
-            if (file.name.endsWith(".mp3") || file.name.endsWith(".wav")) {
-              dataTransfer.items.add(file);
-            }
-          });
-
-          input.files = dataTransfer.files;
-          updateFileList();
-        }
-      }
-    </script>
-  </body>
 </html>

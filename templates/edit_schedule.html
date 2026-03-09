@@ -26,52 +26,16 @@
       <p class="mb-3 fs-4 text-center">Edit Jadwal Bel</p>
       <hr />
 
-      <form method="POST">
-        <!-- Pilih Hari -->
-        <div class="mb-3">
-          <label class="form-label">Hari (Bisa lebih dari satu)</label>
-          <div class="border rounded p-3 mb-2" style="background-color: #f8f9fa">
-            {% set selected_days = schedule[1].split(',') if schedule[1] else [] %}
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="days" value="Senin" id="daySen" {% if 'Senin' in
-                selected_days %}checked{% endif %}>
-              <label class="form-check-label" for="daySen">Senin</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="days" value="Selasa" id="daySel" {% if 'Selasa' in
-                selected_days %}checked{% endif %}>
-              <label class="form-check-label" for="daySel">Selasa</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="days" value="Rabu" id="dayRab" {% if 'Rabu' in
-                selected_days %}checked{% endif %}>
-              <label class="form-check-label" for="dayRab">Rabu</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="days" value="Kamis" id="dayKam" {% if 'Kamis' in
-                selected_days %}checked{% endif %}>
-              <label class="form-check-label" for="dayKam">Kamis</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="days" value="Jumat" id="dayJum" {% if 'Jumat' in
-                selected_days %}checked{% endif %}>
-              <label class="form-check-label" for="dayJum">Jumat</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="days" value="Sabtu" id="daySab" {% if 'Sabtu' in
-                selected_days %}checked{% endif %}>
-              <label class="form-check-label" for="daySab">Sabtu</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="days" value="Minggu" id="dayMin" {% if 'Minggu' in
-                selected_days %}checked{% endif %}>
-              <label class="form-check-label" for="dayMin">Minggu</label>
-            </div>
+        <form method="POST">
+          <!-- Pilih Hari -->
+          <div class="mb-3">
+            <label for="day" class="form-label">Hari</label>
+            <select class="form-control" id="day" name="day" required>
+              {% for h in ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"] %}
+              <option value="{{ h }}" {% if h == schedule[1] %}selected{% endif %}>{{ h }}</option>
+              {% endfor %}
+            </select>
           </div>
-          <small class="text-muted">
-            <i class="fas fa-info-circle"></i> Pilih minimal 1 hari. Jadwal lama akan diganti.
-          </small>
-        </div>
 
         <!-- Jam -->
         <div class="mb-3">

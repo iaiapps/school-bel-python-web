@@ -53,6 +53,14 @@
     .stats-card:hover {
       transform: translateY(-5px);
     }
+
+    .stats-card .card-body {
+      padding: 10px;
+    }
+
+    .stats-card h5 {
+      font-size: 1.3rem;
+    }
   </style>
 </head>
 
@@ -90,62 +98,60 @@
     {% endfor %} {% endif %} {% endwith %}
 
     <!-- Actions Bar -->
-    <div class="card mb-4">
+    <div class="card mb-3">
       <div class="card-body">
-        <div class="row g-3 align-items-center">
-          <div class="col-md-6">
-            <button class="btn btn-primary" onclick="syncSounds()">
-              <i class="fas fa-sync"></i> Sync Folder
+        <div class="row g-2 align-items-center">
+          <div class="col-6">
+            <button class="btn btn-primary btn-sm w-100 mb-1" onclick="syncSounds()">
+              <i class="fas fa-sync"></i> Sync
             </button>
-            <button class="btn btn-outline-secondary" onclick="refreshList()">
+            <button class="btn btn-outline-secondary btn-sm w-100" onclick="refreshList()">
               <i class="fas fa-redo"></i> Refresh
             </button>
           </div>
-          <div class="col-md-6 text-end">
-            <div class="btn-group">
-              <button class="btn btn-success" onclick="showUploadModal()">
-                <i class="fas fa-upload"></i> Upload
-              </button>
-              <button class="btn btn-outline-primary" onclick="showFolderModal()">
-                <i class="fas fa-folder-plus"></i> New Folder
-              </button>
-            </div>
+          <div class="col-6 text-end">
+            <button class="btn btn-success btn-sm w-100 mb-1" onclick="showUploadModal()">
+              <i class="fas fa-upload"></i> Upload
+            </button>
+            <button class="btn btn-outline-primary btn-sm w-100" onclick="showFolderModal()">
+              <i class="fas fa-folder-plus"></i> New Folder
+            </button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Stats Cards -->
-    <div class="row mb-4" id="statsCards">
-      <div class="col-md-3">
+    <div class="row mb-3" id="statsCards">
+      <div class="col-6 col-md-3 mb-2">
         <div class="card bg-primary text-white stats-card">
-          <div class="card-body text-center">
-            <h3 id="totalSounds" class="mb-0">0</h3>
-            <small>Total Sounds</small>
+          <div class="card-body text-center py-2">
+            <h5 id="totalSounds" class="mb-0">0</h5>
+            <small>Sounds</small>
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3 mb-2">
         <div class="card bg-success text-white stats-card">
-          <div class="card-body text-center">
-            <h3 id="foldersCount" class="mb-0">0</h3>
+          <div class="card-body text-center py-2">
+            <h5 id="foldersCount" class="mb-0">0</h5>
             <small>Folders</small>
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3 mb-2">
         <div class="card bg-info text-white stats-card">
-          <div class="card-body text-center">
-            <h3 id="newFilesPreview" class="mb-0">0</h3>
-            <small>New (Preview)</small>
+          <div class="card-body text-center py-2">
+            <h5 id="newFilesPreview" class="mb-0">0</h5>
+            <small>New</small>
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3 mb-2">
         <div class="card bg-warning text-white stats-card">
-          <div class="card-body text-center">
-            <h3 id="missingFilesPreview" class="mb-0">0</h3>
-            <small>Missing (Preview)</small>
+          <div class="card-body text-center py-2">
+            <h5 id="missingFilesPreview" class="mb-0">0</h5>
+            <small>Missing</small>
           </div>
         </div>
       </div>

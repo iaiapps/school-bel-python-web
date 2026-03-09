@@ -285,32 +285,13 @@ def schedule():
     active_cat = get_active_category()
     active_category = active_cat[1] if active_cat else 'normal'
 
+    # Get all schedules
     with _connect() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT file_name FROM sounds ORDER BY id DESC")
-        sounds = cur.fetchall()
+        cur.execute("SELECT id, day_of_week, time, activity, sound_file, category FROM schedules ORDER BY day_of_week, time")
+        schedules = cur.fetchall()
 
-        # Get schedules filtered by active category
-        cur.execute("""
-            SELECT id, day_of_week, time, activity, sound_file, category
-            FROM schedules
-            WHERE category = ?
-            ORDER BY
-              CASE day_of_week
-                WHEN 'Senin' THEN 1
-                WHEN 'Selasa' THEN 2
-                WHEN 'Rabu' THEN 3
-                WHEN 'Kamis' THEN 4
-                WHEN 'Jumat' THEN 5
-                WHEN 'Sabtu' THEN 6
-                WHEN 'Minggu' THEN 7
-                ELSE 8
-              END, time
-        """, (active_category,))
-        schedule_list = cur.fetchall()
-
-    return render_template("schedule.html", schedules=schedule_list, hari_ini=hari_ini, sounds=sounds, 
-                         categories=categories, active_category=active_category)
+    return render_template("schedule.html", schedules=schedules, categories=categories, active_category=active_category, hari_ini=hari_ini)
 
 # ───── EDIT JADWAL ─────
 @app.route("/edit_schedule/<int:schedule_id>", methods=["GET", "POST"])
@@ -322,46 +303,30 @@ def edit_schedule(schedule_id):
         cur = conn.cursor()
 
         if request.method == "POST":
-            days = request.form.getlist("days")
+            day = request.form.get("day")
             time_val = request.form.get("time")
             activity = request.form.get("activity", "").strip()
             sound_file = request.form.get("sound_file")
             category = request.form.get("category", "normal")
 
-            if not days or not time_val or not activity or not sound_file:
+            if not all([day, time_val, activity, sound_file]):
                 flash("Semua field wajib diisi.", "danger")
                 return redirect(url_for("edit_schedule", schedule_id=schedule_id))
 
-            # Validasi schedule exists
-            cur.execute("SELECT id FROM schedules WHERE id=?", (schedule_id,))
-            if not cur.fetchone():
-                flash("Jadwal tidak ditemukan.", "danger")
-                return redirect(url_for("schedule"))
-
-            # Hapus jadwal lama
-            cur.execute("DELETE FROM schedules WHERE id=?", (schedule_id,))
-            
-            # Insert jadwal baru untuk setiap hari
-            inserted_count = 0
-            for day in days:
-                try:
-                    cur.execute("""
-                        INSERT INTO schedules (day_of_week, time, activity, sound_file, category)
-                        VALUES (?, ?, ?, ?, ?)
-                    """, (day, time_val, activity, sound_file, category))
-                    inserted_count += 1
-                except Exception as e:
-                    print(f"Error inserting for {day}: {e}")
-            
+            cur.execute("""
+                UPDATE schedules
+                SET day_of_week=?, time=?, activity=?, sound_file=?, category=?
+                WHERE id=?
+            """, (day, time_val, activity, sound_file, category, schedule_id))
             conn.commit()
-            flash(f"Jadwal berhasil diperbarui untuk {inserted_count} hari.", "success")
+            flash("Jadwal berhasil diperbarui.", "success")
             return redirect(url_for("schedule"))
 
         # kalau GET → ambil data lama
         cur.execute("SELECT id, day_of_week, time, activity, sound_file, category FROM schedules WHERE id=?", (schedule_id,))
         schedule_data = cur.fetchone()
 
-        cur.execute("SELECT file_name FROM sounds ORDER BY id DESC")
+        cur.execute("SELECT file_name FROM sounds ORDER BY CASE WHEN file_name LIKE '%/%' THEN 0 ELSE 1 END, file_name ASC")
         sounds = cur.fetchall()
     
     playlists = get_all_playlists()
@@ -416,7 +381,7 @@ def add_schedule():
 
     with _connect() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT file_name FROM sounds ORDER BY id DESC")
+        cur.execute("SELECT file_name FROM sounds ORDER BY CASE WHEN file_name LIKE '%/%' THEN 0 ELSE 1 END, file_name ASC")
         sounds = cur.fetchall()
     
     playlists = get_all_playlists()
@@ -1016,7 +981,7 @@ def api_get_sounds():
     """Get all sounds for dropdown"""
     with _connect() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id, name, file_name FROM sounds ORDER BY file_name")
+        cur.execute("SELECT id, name, file_name FROM sounds ORDER BY CASE WHEN file_name LIKE '%/%' THEN 0 ELSE 1 END, file_name")
         sounds = cur.fetchall()
     
     return jsonify([{
@@ -1161,32 +1126,20 @@ def api_bulk_delete_sounds():
 @login_required
 def api_play_sound(sound_id):
     """Play sound for testing"""
-    import core
-    import subprocess
-    
     sound = get_sound_by_id(sound_id)
     
     if not sound:
         return jsonify({'success': False, 'message': 'Sound not found'})
     
-    file_path = os.path.join(SOUNDS_PATH, sound[2])
+    file_name = sound[2]
+    file_path = os.path.join(SOUNDS_PATH, file_name)
     
     if not os.path.exists(file_path):
         return jsonify({'success': False, 'message': 'File not found'})
     
     try:
-        # Stop previous audio first
-        core.stop_sound()
-        
-        # Play new audio
-        ext = os.path.splitext(file_path)[1].lower()
-        cmd = ['aplay', file_path] if ext == '.wav' else ['mpg123', '-q', file_path]
-        
-        subprocess.Popen(
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
+        # Use core.play_sound which handles stop + play properly
+        core.play_sound(file_name, activity="Manual Play (Testing)")
         
         return jsonify({'success': True, 'message': 'Playing sound'})
     except Exception as e:

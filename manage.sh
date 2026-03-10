@@ -21,11 +21,52 @@ cd "$SCRIPT_DIR"
 SERVICE_NAME="bel-sekolah.service"
 APP_NAME="Aplikasi Bel Sekolah"
 
+# Required pip packages
+REQUIRED_PACKAGES=("mutagen")
+
 # Helper functions
 print_error() { echo -e "${RED}✗ $1${NC}"; }
 print_success() { echo -e "${GREEN}✓ $1${NC}"; }
 print_info() { echo -e "${BLUE}ℹ $1${NC}"; }
 print_warning() { echo -e "${YELLOW}⚠ $1${NC}"; }
+
+check_python_packages() {
+    print_info "Checking required Python packages..."
+    
+    # Check if venv exists
+    if [ ! -d "venv" ]; then
+        print_warning "Virtual environment not found. Creating..."
+        python3 -m venv venv
+        print_success "Virtual environment created"
+    fi
+    
+    # Activate venv
+    source venv/bin/activate
+    
+    # Check and install required packages
+    for pkg in "${REQUIRED_PACKAGES[@]}"; do
+        if pip show "$pkg" > /dev/null 2>&1; then
+            print_success "$pkg already installed"
+        else
+            print_info "Installing $pkg..."
+            pip install "$pkg"
+            if [ $? -eq 0 ]; then
+                print_success "$pkg installed"
+            else
+                print_error "Failed to install $pkg"
+            fi
+        fi
+    done
+    
+    # Check requirements.txt if exists
+    if [ -f "requirements.txt" ]; then
+        print_info "Installing packages from requirements.txt..."
+        pip install -r requirements.txt
+        print_success "Requirements installed"
+    fi
+    
+    deactivate
+}
 
 get_ip_address() {
     IP=$(hostname -I | awk '{print $1}')
@@ -60,13 +101,14 @@ show_help() {
     echo "Usage: ./manage.sh [command]"
     echo ""
     echo -e "${BLUE}Commands:${NC}"
-    echo "  ${GREEN}start${NC}    - Start aplikasi (manual mode)"
-    echo "  ${GREEN}stop${NC}     - Stop aplikasi"
-    echo "  ${GREEN}restart${NC}  - Restart aplikasi"
-    echo "  ${GREEN}status${NC}   - Cek status aplikasi"
-    echo "  ${GREEN}info${NC}     - Tampilkan info akses & QR code"
-    echo "  ${GREEN}logs${NC}     - Lihat log aplikasi"
-    echo "  ${GREEN}help${NC}     - Tampilkan bantuan ini"
+    echo "  ${GREEN}start${NC}         - Start aplikasi (manual mode)"
+    echo "  ${GREEN}stop${NC}          - Stop aplikasi"
+    echo "  ${GREEN}restart${NC}       - Restart aplikasi"
+    echo "  ${GREEN}status${NC}        - Cek status aplikasi"
+    echo "  ${GREEN}info${NC}          - Tampilkan info akses & QR code"
+    echo "  ${GREEN}logs${NC}          - Lihat log aplikasi"
+    echo "  ${GREEN}install-deps${NC}  - Install dependencies (mutagen, etc)"
+    echo "  ${GREEN}help${NC}          - Tampilkan bantuan ini"
     echo ""
     echo -e "${YELLOW}Note:${NC} Untuk install/uninstall, gunakan:"
     echo "  sudo ./install.sh      # Install aplikasi"
@@ -80,7 +122,15 @@ cmd_start() {
     echo -e "${BLUE}============================================${NC}"
     echo ""
     
+    # Check and install required packages
+    check_python_packages
+    
     # Check if venv exists
+    if [ ! -d "venv" ]; then
+        print_error "Virtual environment not found."
+        echo "  Please run: sudo ./install.sh"
+        exit 1
+    fi
     if [ ! -d "venv" ]; then
         print_error "Virtual environment not found."
         echo "  Please run: sudo ./install.sh"
@@ -266,6 +316,16 @@ cmd_logs() {
     fi
 }
 
+cmd_install_deps() {
+    echo -e "${BLUE}============================================${NC}"
+    echo -e "${BLUE}   Install Dependencies ${APP_NAME}${NC}"
+    echo -e "${BLUE}============================================${NC}"
+    echo ""
+    
+    check_python_packages
+    print_success "Dependencies installation complete!"
+}
+
 # Main
 COMMAND="${1:-help}"
 
@@ -287,6 +347,9 @@ case "$COMMAND" in
         ;;
     logs)
         cmd_logs
+        ;;
+    install-deps)
+        cmd_install_deps
         ;;
     help|--help|-h)
         show_help

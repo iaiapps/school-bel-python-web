@@ -93,8 +93,62 @@ def _is_audio_playing():
     global _current_audio_process
     return _current_audio_process and _current_audio_process.poll() is None
 
+# Flag untuk menandai jadwal baru terdeteksi
+new_schedule_detected = False
+
+def check_and_play_new_schedule():
+    """Check if there's a new schedule to play. Returns True if new schedule played."""
+    global last_played, new_schedule_detected
+    
+    try:
+        now = datetime.datetime.now()
+        current_day_eng = now.strftime("%A")
+        current_day = HARI_MAP.get(current_day_eng, current_day_eng)
+        hhmm = now.strftime("%H:%M")
+        
+        active_category = get_setting('active_category', 'normal')
+        
+        with _connect() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT time, activity, sound_file
+                FROM schedules
+                WHERE day_of_week = ? AND category = ?
+            """, (current_day, active_category))
+            rows = cur.fetchall()
+        
+        for jadwal_time, activity, sound_file in rows:
+            if jadwal_time == hhmm:
+                key = f"{current_day}-{jadwal_time}-{sound_file}-{active_category}"
+                if key not in last_played:
+                    # Stop current audio first
+                    if _is_audio_playing():
+                        print(f"[CORE] Stop audio untuk jadwal baru: {current_playing}")
+                        stop_sound()
+                    
+                    # Play new schedule
+                    if sound_file.startswith("playlist:"):
+                        try:
+                            playlist_id = int(sound_file.split(":")[1])
+                            print(f"[CORE] Jadwal baru: Playlist ID {playlist_id} | {activity}")
+                            _play_playlist(playlist_id, activity)
+                            log_history(current_day, jadwal_time, activity, sound_file)
+                        except:
+                            pass
+                    else:
+                        print(f"[CORE] Jadwal baru: {sound_file} | {activity}")
+                        play_sound(sound_file, activity)
+                    
+                    last_played.add(key)
+                    return True
+    except Exception as e:
+        print(f"[CORE] Error check schedule: {e}")
+    
+    return False
+
 def _play_playlist(playlist_id, activity="Playlist"):
-    """Play all files in a playlist sequentially (blocking)"""
+    """Play all files in a playlist sequentially with schedule checking"""
+    global new_schedule_detected
     files = get_playlist_sound_files(playlist_id)
     
     if not files:
@@ -104,17 +158,39 @@ def _play_playlist(playlist_id, activity="Playlist"):
     print(f"[CORE] Memutar playlist dengan {len(files)} file")
     
     for file_path in files:
+        # Reset flag
+        new_schedule_detected = False
+        
         if not scheduler_running:
             print("[CORE] Scheduler berhenti, playlist dihentikan")
             break
         
         file_name = os.path.basename(file_path)
+        
+        # Start playing file
         try:
             _play_audio(file_path)
+            print(f"[CORE] Memutar: {file_name}")
             
-            # Wait for this file to finish
+            # Wait with periodic checking for new schedule
             if _current_audio_process:
-                _current_audio_process.wait()
+                while _current_audio_process.poll() is None:
+                    if not scheduler_running:
+                        print("[CORE] Scheduler berhenti")
+                        break
+                    
+                    # Check for new schedule every 1 second
+                    import time
+                    time.sleep(1)
+                    
+                    # Check if new schedule detected
+                    if check_and_play_new_schedule():
+                        print("[CORE] Jadwal baru terdeteksi di tengah playlist!")
+                        new_schedule_detected = True
+                        break
+            
+            if new_schedule_detected:
+                break
                 
             print(f"[CORE] Selesai: {file_name}")
         except Exception as e:

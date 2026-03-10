@@ -376,7 +376,8 @@
         try {
           const res = await fetch(`/api/playlists/${playlistId}/items`);
           if (!res.ok) throw new Error("Failed to load items");
-          const items = await res.json();
+          const data = await res.json();
+          const items = data.items || [];
           const ul = document.getElementById("playlistItems");
           ul.innerHTML = "";
           if (items.length === 0) {
@@ -392,25 +393,30 @@
               ".</strong> " +
               item.name +
               " <small>(" +
-              item.file_name +
+              (item.duration_formatted || '?') +
               ")</small></div>" +
               '<button class="btn btn-sm btn-outline-danger" onclick="removeItem(' +
               item.id +
               ')"><i class="fas fa-trash"></i></button></li>';
           });
+          
+          // Show items preview and total duration
           const previewDiv = document.getElementById("items-" + playlistId);
           if (previewDiv) {
-            previewDiv.innerHTML =
-              items
-                .map(
-                  (item, i) =>
-                    '<div class="text-truncate small"><strong>' +
-                    (i + 1) +
-                    ".</strong> " +
-                    item.name +
-                    "</div>",
-                )
-                .join("") || '<small class="text-muted">Belum ada file</small>';
+            let html = items
+              .map(
+                (item, i) =>
+                  '<div class="text-truncate small"><strong>' +
+                  (i + 1) +
+                  ".</strong> " +
+                  item.name +
+                  "</div>",
+              )
+              .join("") || '<small class="text-muted">Belum ada file</small>';
+            if (data.total_duration_formatted) {
+              html += '<small class="text-muted d-block mt-2">Total: ' + data.total_duration_formatted + '</small>';
+            }
+            previewDiv.innerHTML = html;
           }
         } catch (err) {
           console.error("Error loading items:", err);

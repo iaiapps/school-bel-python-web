@@ -15,6 +15,48 @@ import threading
 from settings import settings_manager, get_all_settings, update_settings, get_setting
 from werkzeug.security import generate_password_hash
 
+try:
+    from mutagen.mp3 import MP3
+    from mutagen.wav import WAV
+    MUTAGEN_AVAILABLE = True
+except ImportError:
+    MUTAGEN_AVAILABLE = False
+
+def get_audio_duration(file_path):
+    """Get audio file duration in seconds. Returns None if failed."""
+    if not MUTAGEN_AVAILABLE:
+        return None
+    try:
+        full_path = os.path.join(Config.UPLOAD_FOLDER, file_path)
+        if not os.path.exists(full_path):
+            return None
+        ext = os.path.splitext(file_path)[1].lower()
+        if ext == '.mp3':
+            audio = MP3(full_path)
+        elif ext == '.wav':
+            audio = WAV(full_path)
+        else:
+            return None
+        return round(audio.info.length, 1)
+    except Exception as e:
+        print(f"[DURATION] Error getting duration for {file_path}: {e}")
+        return None
+
+def format_duration(seconds):
+    """Format seconds to human readable string."""
+    if seconds is None:
+        return "?"
+    if seconds < 60:
+        return f"{seconds}s"
+    elif seconds < 3600:
+        mins = int(seconds // 60)
+        secs = int(seconds % 60)
+        return f"{mins}m {secs}s" if secs > 0 else f"{mins}m"
+    else:
+        hours = int(seconds // 3600)
+        mins = int((seconds % 3600) // 60)
+        return f"{hours}h {mins}m"
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -327,11 +369,17 @@ def edit_schedule(schedule_id):
         schedule_data = cur.fetchone()
 
         cur.execute("SELECT file_name FROM sounds ORDER BY CASE WHEN file_name LIKE '%/%' THEN 0 ELSE 1 END, file_name ASC")
-        sounds = cur.fetchall()
+        sounds_raw = cur.fetchall()
+        
+        # Add duration to each sound
+        sounds_with_duration = []
+        for s in sounds_raw:
+            duration = get_audio_duration(s[0])
+            sounds_with_duration.append((s[0], format_duration(duration)))
     
     playlists = get_all_playlists()
 
-    return render_template("edit_schedule.html", schedule=schedule_data, sounds=sounds, categories=categories, playlists=playlists)
+    return render_template("edit_schedule.html", schedule=schedule_data, sounds=sounds_with_duration, categories=categories, playlists=playlists)
 
 # ───── TAMBAH JADWAL ─────
 @app.route("/schedule/add", methods=["GET", "POST"])
@@ -382,11 +430,17 @@ def add_schedule():
     with _connect() as conn:
         cur = conn.cursor()
         cur.execute("SELECT file_name FROM sounds ORDER BY CASE WHEN file_name LIKE '%/%' THEN 0 ELSE 1 END, file_name ASC")
-        sounds = cur.fetchall()
+        sounds_raw = cur.fetchall()
+    
+    # Add duration to each sound
+    sounds_with_duration = []
+    for s in sounds_raw:
+        duration = get_audio_duration(s[0])
+        sounds_with_duration.append((s[0], format_duration(duration)))
     
     playlists = get_all_playlists()
 
-    return render_template("add_schedule.html", sounds=sounds, categories=categories, playlists=playlists)
+    return render_template("add_schedule.html", sounds=sounds_with_duration, categories=categories, playlists=playlists)
 
 # ───── DELETE JADWAL ─────
 @app.route("/delete_schedule/<int:schedule_id>", methods=["POST"])
@@ -934,15 +988,28 @@ def api_delete_playlist(playlist_id):
 @app.route("/api/playlists/<int:playlist_id>/items", methods=["GET"])
 @login_required
 def api_get_playlist_items(playlist_id):
-    """Get playlist items"""
+    """Get playlist items with duration"""
     items = get_playlist_items(playlist_id)
-    return jsonify([{
-        'id': item[0],
-        'position': item[1],
-        'sound_id': item[2],
-        'name': item[3],
-        'file_name': item[4]
-    } for item in items])
+    result = []
+    total_duration = 0
+    for item in items:
+        duration = get_audio_duration(item[4])
+        if duration:
+            total_duration += duration
+        result.append({
+            'id': item[0],
+            'position': item[1],
+            'sound_id': item[2],
+            'name': item[3],
+            'file_name': item[4],
+            'duration': duration,
+            'duration_formatted': format_duration(duration)
+        })
+    return jsonify({
+        'items': result,
+        'total_duration': total_duration,
+        'total_duration_formatted': format_duration(total_duration)
+    })
 
 @app.route("/api/playlists/<int:playlist_id>/items", methods=["POST"])
 @login_required
@@ -984,11 +1051,17 @@ def api_get_sounds():
         cur.execute("SELECT id, name, file_name FROM sounds ORDER BY CASE WHEN file_name LIKE '%/%' THEN 0 ELSE 1 END, file_name")
         sounds = cur.fetchall()
     
-    return jsonify([{
-        'id': s[0],
-        'name': s[1],
-        'file_name': s[2]
-    } for s in sounds])
+    result = []
+    for s in sounds:
+        duration = get_audio_duration(s[2])
+        result.append({
+            'id': s[0],
+            'name': s[1],
+            'file_name': s[2],
+            'duration': duration,
+            'duration_formatted': format_duration(duration)
+        })
+    return jsonify(result)
 
 # ==================== SOUNDS MANAGEMENT API ====================
 

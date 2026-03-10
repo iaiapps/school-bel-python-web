@@ -78,7 +78,7 @@
             <option disabled selected>--- pilih sound/playlist ---</option>
             <optgroup label="Sound (Single File)">
               {% for sound in sounds %}
-              <option value="{{ sound[0] }}">🔊 {{ sound[0] }}</option>
+              <option value="{{ sound[0] }}">🔊 {{ sound[0] }} ({{ sound[1] }})</option>
               {% endfor %}
             </optgroup>
             <optgroup label="Playlist (Multiple Files)">

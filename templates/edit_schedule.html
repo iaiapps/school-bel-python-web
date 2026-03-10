@@ -56,7 +56,7 @@
             <option selected disabled>--- pilih sound/playlist ---</option>
             <optgroup label="Sound (Single File)">
               {% for s in sounds %}
-              <option value="{{ s[0] }}" {% if s[0]==schedule[4] %}selected{% endif %}>🔊 {{ s[0] }}</option>
+              <option value="{{ s[0] }}" {% if s[0]==schedule[4] %}selected{% endif %}>🔊 {{ s[0] }} ({{ s[1] }})</option>
               {% endfor %}
             </optgroup>
             <optgroup label="Playlist (Multiple Files)">

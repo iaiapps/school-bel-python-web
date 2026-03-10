@@ -185,12 +185,13 @@
                 </th>
                 <th>Name</th>
                 <th>Path</th>
+                <th width="100">Duration</th>
                 <th width="150">Actions</th>
               </tr>
             </thead>
             <tbody id="soundsTable">
               <tr>
-                <td colspan="4" class="text-center text-muted py-4">
+                <td colspan="5" class="text-center text-muted py-4">
                   <i class="fas fa-spinner fa-spin fa-2x"></i>
                   <p class="mt-2">Loading sounds...</p>
                 </td>
@@ -393,6 +394,7 @@
                     <td><input type="checkbox" class="sound-checkbox" value="${sound.id}"></td>
                     <td><strong>${sound.name}</strong></td>
                     <td><small class="text-muted">${sound.file_name}</small></td>
+                    <td><small class="text-muted">${sound.duration_formatted || '?'}</small></td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary" onclick="playSound(${sound.id})" title="Play">
                             <i class="fas fa-play"></i>

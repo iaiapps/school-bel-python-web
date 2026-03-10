@@ -3,6 +3,7 @@ import sqlite3
 import time
 import subprocess
 import os
+import threading
 from config import Config
 from database import get_playlist_sound_files, get_playlist_items, get_all_playlists
 from settings import get_setting
@@ -30,6 +31,10 @@ scheduler_running = False  # status scheduler
 
 # Audio subprocess handler
 _current_audio_process = None
+_audio_lock = threading.Lock()  # Lock untuk race condition
+
+# Flag untuk mencegah nested playlist play
+_is_playing_playlist = False
 
 def _connect():
     conn = sqlite3.connect(DB_PATH, timeout=10)
@@ -50,30 +55,36 @@ def _get_audio_command(file_path):
         return ['mpg123', '-q', file_path]  # -q for quiet mode
 
 def _play_audio(file_path):
-    """Play audio file using subprocess (non-blocking)"""
+    """Play audio file using subprocess (non-blocking) - thread safe"""
     global _current_audio_process
     
-    try:
-        # Stop any currently playing audio first
-        _stop_audio()
-        
-        # Get appropriate command
-        cmd = _get_audio_command(file_path)
-        
-        # Start new audio process
-        _current_audio_process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-        
-        return True
-    except Exception as e:
-        print(f"[AUDIO] Gagal memutar {file_path}: {e}")
-        return False
+    with _audio_lock:
+        try:
+            # Stop any currently playing audio first
+            _stop_audio_locked()
+            
+            # Get appropriate command
+            cmd = _get_audio_command(file_path)
+            
+            # Start new audio process
+            _current_audio_process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            
+            return True
+        except Exception as e:
+            print(f"[AUDIO] Gagal memutar {file_path}: {e}")
+            return False
 
 def _stop_audio():
-    """Stop currently playing audio"""
+    """Stop currently playing audio - thread safe"""
+    with _audio_lock:
+        _stop_audio_locked()
+
+def _stop_audio_locked():
+    """Stop currently playing audio - internal, no lock"""
     global _current_audio_process
     
     if _current_audio_process and _current_audio_process.poll() is None:
@@ -89,16 +100,16 @@ def _stop_audio():
             _current_audio_process = None
 
 def _is_audio_playing():
-    """Check if audio is currently playing"""
-    global _current_audio_process
-    return _current_audio_process and _current_audio_process.poll() is None
+    """Check if audio is currently playing - thread safe"""
+    with _audio_lock:
+        return _current_audio_process and _current_audio_process.poll() is None
 
 # Flag untuk menandai jadwal baru terdeteksi
 new_schedule_detected = False
 
 def check_and_play_new_schedule():
-    """Check if there's a new schedule to play. Returns True if new schedule played."""
-    global last_played, new_schedule_detected
+    """Check if there's a new schedule. Returns schedule info dict if new schedule found, None otherwise."""
+    global last_played
     
     try:
         now = datetime.datetime.now()
@@ -126,29 +137,44 @@ def check_and_play_new_schedule():
                         print(f"[CORE] Stop audio untuk jadwal baru: {current_playing}")
                         stop_sound()
                     
-                    # Play new schedule
-                    if sound_file.startswith("playlist:"):
-                        try:
-                            playlist_id = int(sound_file.split(":")[1])
-                            print(f"[CORE] Jadwal baru: Playlist ID {playlist_id} | {activity}")
-                            _play_playlist(playlist_id, activity)
-                            log_history(current_day, jadwal_time, activity, sound_file)
-                        except:
-                            pass
-                    else:
-                        print(f"[CORE] Jadwal baru: {sound_file} | {activity}")
-                        play_sound(sound_file, activity)
-                    
+                    # Return schedule info for caller to play (avoid nested call)
                     last_played.add(key)
-                    return True
+                    return {
+                        'day': current_day,
+                        'time': jadwal_time,
+                        'activity': activity,
+                        'sound_file': sound_file
+                    }
     except Exception as e:
         print(f"[CORE] Error check schedule: {e}")
     
-    return False
+    return None
+
+def _play_schedule_from_dict(schedule_info):
+    """Play schedule from info dict returned by check_and_play_new_schedule()"""
+    if not schedule_info:
+        return
+    
+    sound_file = schedule_info['sound_file']
+    activity = schedule_info['activity']
+    current_day = schedule_info['day']
+    jadwal_time = schedule_info['time']
+    
+    if sound_file.startswith("playlist:"):
+        try:
+            playlist_id = int(sound_file.split(":")[1])
+            print(f"[CORE] Jadwal baru: Playlist ID {playlist_id} | {activity}")
+            _play_playlist(playlist_id, activity)
+            log_history(current_day, jadwal_time, activity, sound_file)
+        except:
+            pass
+    else:
+        print(f"[CORE] Jadwal baru: {sound_file} | {activity}")
+        play_sound(sound_file, activity)
 
 def _play_playlist(playlist_id, activity="Playlist"):
     """Play all files in a playlist sequentially with schedule checking"""
-    global new_schedule_detected
+    global new_schedule_detected, _is_playing_playlist
     files = get_playlist_sound_files(playlist_id)
     
     if not files:
@@ -156,6 +182,7 @@ def _play_playlist(playlist_id, activity="Playlist"):
         return
     
     print(f"[CORE] Memutar playlist dengan {len(files)} file")
+    _is_playing_playlist = True
     
     for file_path in files:
         # Reset flag
@@ -183,10 +210,12 @@ def _play_playlist(playlist_id, activity="Playlist"):
                     import time
                     time.sleep(1)
                     
-                    # Check if new schedule detected
-                    if check_and_play_new_schedule():
+                    # Check if new schedule detected (just detect, don't play to avoid nested call)
+                    schedule_info = check_and_play_new_schedule()
+                    if schedule_info:
                         print("[CORE] Jadwal baru terdeteksi di tengah playlist!")
                         new_schedule_detected = True
+                        # Play the new schedule AFTER breaking out of loop
                         break
             
             if new_schedule_detected:
@@ -197,6 +226,7 @@ def _play_playlist(playlist_id, activity="Playlist"):
             print(f"[CORE] Error memutar {file_name}: {e}")
             continue
     
+    _is_playing_playlist = False
     print(f"[CORE] Playlist selesai")
 
 # play sound

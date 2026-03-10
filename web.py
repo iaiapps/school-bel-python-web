@@ -15,12 +15,13 @@ import threading
 from settings import settings_manager, get_all_settings, update_settings, get_setting
 from werkzeug.security import generate_password_hash
 
+MUTAGEN_AVAILABLE = False
+
 try:
-    from mutagen.mp3 import MP3
-    from mutagen.wav import WAV
+    from mutagen import File as _MutagenFile
     MUTAGEN_AVAILABLE = True
 except ImportError:
-    MUTAGEN_AVAILABLE = False
+    _MutagenFile = None
 
 def get_audio_duration(file_path):
     """Get audio file duration in seconds. Returns None if failed."""
@@ -30,12 +31,8 @@ def get_audio_duration(file_path):
         full_path = os.path.join(Config.UPLOAD_FOLDER, file_path)
         if not os.path.exists(full_path):
             return None
-        ext = os.path.splitext(file_path)[1].lower()
-        if ext == '.mp3':
-            audio = MP3(full_path)
-        elif ext == '.wav':
-            audio = WAV(full_path)
-        else:
+        audio = _MutagenFile(full_path)
+        if audio is None:
             return None
         return round(audio.info.length, 1)
     except Exception as e:

@@ -137,6 +137,10 @@
               <h5><i class="fas fa-sliders-h me-2"></i>Pengaturan Umum</h5>
               <form method="POST" action="/settings/general">
                 <div class="mb-3">
+                  <label class="form-label">Nama Aplikasi / Sekolah</label>
+                  <input type="text" class="form-control" name="app_name" value="{{ settings.app_name }}" placeholder="Contoh: SDIT Harapan Umat" required>
+                </div>
+                <div class="mb-3">
                   <label class="form-label">Timezone</label>
                   <select class="form-select" name="timezone">
                     <option value="Asia/Jakarta" {% if settings.timezone=='Asia/Jakarta' %}selected{% endif %}>WIB
@@ -147,6 +151,8 @@
                       (Asia/Jayapura)</option>
                   </select>
                 </div>
+                {# Theme options - commented out, will be implemented later #}
+                {# 
                 <div class="mb-3">
                   <label class="form-label">Theme</label>
                   <select class="form-select" name="theme">
@@ -156,6 +162,7 @@
                     <option value="light" {% if settings.theme=='light' %}selected{% endif %}>Light Mode</option>
                   </select>
                 </div>
+                #}
                 <div class="form-check form-switch mb-3">
                   <input class="form-check-input" type="checkbox" name="auto_start" id="autoStart" {% if
                     settings.auto_start %}checked{% endif %}>

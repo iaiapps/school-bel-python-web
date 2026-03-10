@@ -2,6 +2,7 @@ import threading
 import sys
 from database import init_db
 from config import Config
+from settings import get_setting
 import web
 import core
 
@@ -10,8 +11,14 @@ def start_core():
     core.start_scheduler()
 
 if __name__ == "__main__":
+    # Get app name from settings
+    try:
+        app_name = get_setting('app_name', 'Bel Sekolah')
+    except:
+        app_name = 'Bel Sekolah'
+    
     print("=" * 60)
-    print("🔔 APLIKASI BEL SEKOLAH - SDIT HARAPAN UMAT JEMBER")
+    print(f"🔔 APLIKASI BEL SEKOLAH - {app_name}")
     print("=" * 60)
     
     # Inisialisasi database

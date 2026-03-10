@@ -57,6 +57,16 @@ def format_duration(seconds):
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# Context processor to make app_name available in all templates
+@app.context_processor
+def inject_app_name():
+    try:
+        from settings import get_setting
+        app_name = get_setting('app_name', 'Bel Sekolah')
+    except:
+        app_name = 'Bel Sekolah'
+    return dict(app_name=app_name)
+
 # Define SOUNDS_PATH
 SOUNDS_PATH = Config.UPLOAD_FOLDER
 
@@ -618,6 +628,7 @@ def settings():
 @login_required
 def settings_general():
     updates = {
+        'app_name': request.form.get('app_name', 'Bel Sekolah'),
         'timezone': request.form.get('timezone', 'Asia/Jakarta'),
         'theme': request.form.get('theme', 'default'),
         'auto_start': 'auto_start' in request.form

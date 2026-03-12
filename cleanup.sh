@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==========================================
-# Cleanup & Uninstall Script - Reset atau Hapus Aplikasi
+# Cleanup & Uninstall Script
 # Usage: sudo ./cleanup.sh
 # ==========================================
 
@@ -48,14 +48,14 @@ show_menu() {
     echo ""
     echo -e "${BLUE}Pilih tindakan:${NC}"
     echo ""
-    echo "  1) Cleanup (Reset untuk fresh install)"
-    echo "     → Hapus database, venv, cache, settings"
-    echo "     → File project & sounds TIDAK dihapus"
-    echo "     → Cocok untuk reset/re-install"
+    echo "  1) Reset"
+    echo "     → Hapus venv saja"
+    echo "     → Database, sounds, settings TIDAK dihapus"
+    echo "     → Cocok untuk reinstall dependency saja"
     echo ""
-    echo "  2) Uninstall (Hapus semua aplikasi)"
-    echo "     → Hapus service, venv, database, cache"
-    echo "     → File project & sounds TIDAK dihapus"
+    echo "  2) Uninstall (Hapus semua)"
+    echo "     → Hapus service, venv, database, sounds, settings, logs"
+    echo "     → File project & templates TIDAK dihapus"
     echo "     → Cocok untuk uninstall permanen"
     echo ""
     echo "  0) Batal"
@@ -87,9 +87,90 @@ remove_service() {
     fi
 }
 
-# Common cleanup
-common_cleanup() {
+# Option 1: Reset (hanya hapus venv)
+do_reset() {
+    echo ""
+    print_warning "⚠️  RESET - Reinstall Dependency"
+    echo ""
+    echo -e "${YELLOW}Yang akan dihapus:${NC}"
+    echo "  • Virtual environment (venv/)"
+    echo ""
+    echo -e "${GREEN}Yang TIDAK dihapus:${NC}"
+    echo "  • Database (database.db)"
+    echo "  • Sounds (sounds/)"
+    echo "  • Settings & QR code files"
+    echo "  • Logs"
+    echo "  • Service systemd"
+    echo "  • Templates & Source code"
+    echo ""
+    
+    read -p "Lanjutkan reset? (y/N): " confirm
+    if [[ ! $confirm =~ ^[Yy]$ ]]; then
+        echo "Dibatalkan."
+        exit 0
+    fi
+    
+    echo ""
+    print_info "🔄 Memulai reset..."
+    echo ""
+    
     cd "$SCRIPT_DIR"
+    
+    # Remove venv
+    if [ -d "venv" ]; then
+        echo "→ Removing virtual environment..."
+        rm -rf venv
+    fi
+    
+    # Stop service (karena venv hilang)
+    stop_service
+    
+    echo ""
+    print_success "✅ Reset selesai!"
+    echo ""
+    print_info "Selanjutnya jalankan install ulang:"
+    echo "  sudo ./install.sh"
+    echo ""
+}
+
+# Option 2: Uninstall (hapus semua)
+do_uninstall() {
+    echo ""
+    print_warning "⚠️  UNINSTALL - Hapus Aplikasi"
+    echo ""
+    echo -e "${RED}PERINGATAN: Semua data aplikasi akan dihapus!${NC}"
+    echo ""
+    echo -e "${YELLOW}Yang akan dihapus:${NC}"
+    echo "  • Service systemd (bel-sekolah.service)"
+    echo "  • Virtual environment (venv/)"
+    echo "  • Database (database.db)"
+    echo "  • Sounds (sounds/)"
+    echo "  • Settings & QR code files"
+    echo "  • Logs"
+    echo ""
+    echo -e "${GREEN}Yang TIDAK dihapus:${NC}"
+    echo "  • templates/ - HTML templates"
+    echo "  • *.py, *.sh - Source code"
+    echo ""
+    echo -e "${RED}Ini akan menghapus aplikasi dari sistem!${NC}"
+    echo ""
+    
+    read -p "Apakah Anda yakin ingin uninstall? (y/N): " confirm
+    if [[ ! $confirm =~ ^[Yy]$ ]]; then
+        echo "Dibatalkan."
+        exit 0
+    fi
+    
+    echo ""
+    print_info "🗑️  Memulai uninstall..."
+    echo ""
+    
+    cd "$SCRIPT_DIR"
+    
+    # Stop service
+    stop_service
+    disable_service
+    remove_service
     
     # Remove venv
     if [ -d "venv" ]; then
@@ -112,6 +193,12 @@ common_cleanup() {
     # Remove WAL/SHM files
     rm -f database.db-shm database.db-wal
     
+    # Remove sounds folder
+    if [ -d "sounds" ]; then
+        echo "→ Removing sounds..."
+        rm -rf sounds
+    fi
+    
     # Remove settings files
     rm -f app_settings.json
     
@@ -123,93 +210,11 @@ common_cleanup() {
         echo "→ Removing logs..."
         rm -rf logs
     fi
-}
-
-# Option 1: Cleanup (for fresh install)
-do_cleanup() {
-    echo ""
-    print_warning "⚠️  CLEANUP - Reset untuk Fresh Install"
-    echo ""
-    echo -e "${YELLOW}Yang akan dihapus:${NC}"
-    echo "  • Service systemd (bel-sekolah.service)"
-    echo "  • Virtual environment (venv/)"
-    echo "  • Python cache (__pycache__/)"
-    echo "  • Database (database.db)"
-    echo "  • Settings & QR code files"
-    echo "  • Logs"
-    echo ""
-    echo -e "${GREEN}Yang TIDAK dihapus:${NC}"
-    echo "  • sounds/ - File audio"
-    echo "  • templates/ - HTML templates"
-    echo "  • *.py, *.sh - Source code"
-    echo ""
-    
-    read -p "Lanjutkan cleanup? (y/N): " confirm
-    if [[ ! $confirm =~ ^[Yy]$ ]]; then
-        echo "Dibatalkan."
-        exit 0
-    fi
-    
-    echo ""
-    print_info "🧹 Memulai cleanup..."
-    echo ""
-    
-    stop_service
-    disable_service
-    remove_service
-    common_cleanup
-    
-    echo ""
-    print_success "✅ Cleanup selesai!"
-    echo ""
-    print_info "Selanjutnya jalankan install ulang:"
-    echo "  sudo ./install.sh"
-    echo ""
-}
-
-# Option 2: Uninstall (remove everything)
-do_uninstall() {
-    echo ""
-    print_warning "⚠️  UNINSTALL - Hapus Aplikasi"
-    echo ""
-    echo -e "${RED}PERINGATAN: Semua data aplikasi akan dihapus!${NC}"
-    echo ""
-    echo -e "${YELLOW}Yang akan dihapus:${NC}"
-    echo "  • Service systemd (bel-sekolah.service)"
-    echo "  • Virtual environment (venv/)"
-    echo "  • Python cache (__pycache__/)"
-    echo "  • Database (database.db)"
-    echo "  • Settings & QR code files"
-    echo "  • Logs"
-    echo ""
-    echo -e "${GREEN}Yang TIDAK dihapus:${NC}"
-    echo "  • sounds/ - File audio"
-    echo "  • templates/ - HTML templates"
-    echo "  • *.py, *.sh - Source code"
-    echo ""
-    echo -e "${RED}Ini akan menghapus aplikasi dari sistem!${NC}"
-    echo ""
-    
-    read -p "Apakah Anda yakin ingin uninstall? (y/N): " confirm
-    if [[ ! $confirm =~ ^[Yy]$ ]]; then
-        echo "Dibatalkan."
-        exit 0
-    fi
-    
-    echo ""
-    print_info "🗑️  Memulai uninstall..."
-    echo ""
-    
-    stop_service
-    disable_service
-    remove_service
-    common_cleanup
     
     echo ""
     print_success "✅ Uninstall selesai!"
     echo ""
     print_info "File yang tersisa (tidak dihapus):"
-    echo "  • sounds/ - File audio bel"
     echo "  • templates/ - File HTML"
     echo "  • *.py, *.sh - Source code"
     echo ""
@@ -227,7 +232,7 @@ read -p "Pilih opsi (0-2): " choice
 
 case "$choice" in
     1)
-        do_cleanup
+        do_reset
         ;;
     2)
         do_uninstall

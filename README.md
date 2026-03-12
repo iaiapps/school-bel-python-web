@@ -1,16 +1,12 @@
-# 🔔 Aplikasi Bel Sekolah
+# Aplikasi Bel Sekolah
 
-Sistem bel sekolah otomatis untuk **Raspberry Pi** dengan web interface, support playlist murottal, dan multi-folder sounds.
-
-![Version](https://img.shields.io/badge/version-3.0-orange)
-![Python](https://img.shields.io/badge/python-3.8+-blue)
-![Platform](https://img.shields.io/badge/platform-Raspberry%20Pi-green)
+Sistem bel sekolah otomatis untuk Raspberry Pi dengan web interface, support playlist murottal, dan multi-folder sounds.
 
 ---
 
-## ✨ Fitur Utama
+## Fitur Utama
 
-### 🎵 Audio System
+### Audio System
 
 - **MP3 & WAV Support** - Menggunakan mpg123/aplay (ringan)
 - **Subfolder Support** - Organisir sounds dalam folder (bel/, murottal/, dll)
@@ -18,13 +14,13 @@ Sistem bel sekolah otomatis untuk **Raspberry Pi** dengan web interface, support
 - **Auto-Sync** - Scan folder & update database otomatis
 - **Interrupt** - Bel prioritas lebih tinggi dari murottal
 
-### 📅 Scheduler
+### Scheduler
 
 - **Jadwal Otomatis** - Sesuai jadwal sekolah
 - **Multi Kategori** - Normal, Ujian, Puasa
 - **Priority System** - Interrupt murottal saat bel masuk
 
-### 🌐 Web Interface
+### Web Interface
 
 - **Responsive** - Optimal untuk HP
 - **Manage Sounds** - Upload, sync, organize dalam folder
@@ -32,16 +28,15 @@ Sistem bel sekolah otomatis untuk **Raspberry Pi** dengan web interface, support
 - **Playlist Manager** - Kelola urutan murottal
 - **Real-time Control** - Play/stop manual
 
-### 🚀 Deployment
+### Deployment
 
 - **One-Click Install** - Setup otomatis
 - **Auto-Start** - Nyala otomatis saat boot
 - **Systemd Service** - Production-ready
-- **No Hostname Change** - Aman untuk sistem
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Install (5 Menit)
 
@@ -54,89 +49,89 @@ sudo ./install.sh
 
 ### 2. Akses
 
-**Dari HP/Laptop:**
+Dari HP/Laptop:
 
 ```
 http://[IP-RASPBERRY-PI]:5000
 ```
 
-**Login:**
+Login:
 
 - Username: `admin`
 - Password: `admin123`
 
 ### 3. Setup Awal
 
-1. **Upload Sounds** - Menu Upload atau Manage Sounds
-2. **Buat Playlist** - Menu Playlist (untuk murottal)
-3. **Buat Jadwal** - Menu Jadwal Harian
-4. **Test Audio** - Settings → Audio → Test
+1. Upload Sounds - Menu Upload atau Manage Sounds
+2. Buat Playlist - Menu Playlist (untuk murottal)
+3. Buat Jadwal - Menu Jadwal Harian
+4. Test Audio - Settings -> Audio -> Test
 
 ---
 
-## 📱 Menu Web
+## Menu Web
 
 | Menu              | Fungsi                                 |
 | ----------------- | -------------------------------------- |
-| **Dashboard**     | Overview, quick actions, status        |
-| **Upload Sound**  | Upload single file                     |
-| **Manage Sounds** | 🆕 Kelola folder, bulk upload, sync    |
-| **Playlist**      | Playlist untuk murottal/audio sequence |
-| **Jadwal Harian** | Atur jadwal bel otomatis               |
-| **Riwayat**       | Log aktivitas                          |
-| **Settings**      | Audio, network, security               |
+| Dashboard         | Overview, quick actions, status        |
+| Upload Sound     | Upload single file                     |
+| Manage Sounds    | Kelola folder, bulk upload, sync      |
+| Playlist         | Playlist untuk murottal/audio sequence |
+| Jadwal Harian    | Atur jadwal bel otomatis               |
+| Riwayat          | Log aktivitas                          |
+| Settings         | Audio, network, security               |
 
 ---
 
-## 🎯 Cara Pakai
+## Cara Pakai
 
 ### Upload Sounds (Banyak File)
 
-**Cara 1: Via Web (Manage Sounds)**
+Cara 1: Via Web (Manage Sounds)
 
-1. Menu **Manage Sounds**
-2. **Upload** → Pilih folder (bel/, murottal/, dll)
+1. Menu Manage Sounds
+2. Upload -> Pilih folder (bel/, murottal/, dll)
 3. Drag-drop multiple files (max 50)
 4. Upload
 
-**Cara 2: Via SCP/USB + Sync**
+Cara 2: Via SCP/USB + Sync
 
 ```bash
 # Copy file ke folder
 scp *.mp3 admin@[IP]:/home/admin/bel/sounds/bel/
 
 # Sync via web
-Manage Sounds → Sync Folder → Preview → Sync Now
+Manage Sounds -> Sync Folder -> Preview -> Sync Now
 ```
 
 ### Buat Playlist Murottal
 
-1. **Menu Playlist** → **Buat Playlist Baru**
+1. Menu Playlist -> Buat Playlist Baru
 2. Nama: "Murottal Pagi"
-3. **Kelola** → Tambah file dengan urutan
-4. **Save**
+3. Kelola -> Tambah file dengan urutan
+4. Save
 
 ### Buat Jadwal
 
-1. **Jadwal Harian** → **Tambah Jadwal**
+1. Jadwal Harian -> Tambah Jadwal
 2. Pilih: Hari, Waktu, Kegiatan
-3. **Pilih Sound**:
-   - 🔊 Single file: `bel/bell.mp3`
-   - 📋 Playlist: `Murottal Pagi`
-4. **Simpan**
+3. Pilih Sound:
+   - Single file: bel/bell.mp3
+   - Playlist: Murottal Pagi
+4. Simpan
 
 ### Sync Sounds
 
-Jika ada perubahan di folder `sounds/`:
+Jika ada perubahan di folder sounds/:
 
-1. **Manage Sounds** → **Sync Folder**
+1. Manage Sounds -> Sync Folder
 2. Lihat preview (new, missing, unchanged)
-3. ✅ Centang "Hapus file yang tidak ada"
-4. **Sync Now**
+3. Centang "Hapus file yang tidak ada"
+4. Sync Now
 
 ---
 
-## 📂 Struktur Folder
+## Struktur Folder
 
 ```
 bel/
@@ -157,7 +152,7 @@ bel/
 
 ---
 
-## 🔧 Command Management
+## Command Management
 
 ### manage.sh
 
@@ -180,28 +175,28 @@ sudo journalctl -u bel-sekolah -f
 
 ---
 
-## ⚙️ Settings
+## Settings
 
 ### Audio
 
-- **Volume**: 0-100%
-- **Output**: Auto/Headphone/HDMI
-- **Auto-restore**: Volume tersimpan saat reboot
+- Volume: 0-100%
+- Output: Auto/Headphone/HDMI
+- Auto-restore: Volume tersimpan saat reboot
 
 ### Network
 
-- **Port**: Default 5000
-- **Hostname**: Menggunakan hostname asli RPi
-- **Access**: Via IP atau hostname.local
+- Port: Default 5000
+- Hostname: Menggunakan hostname asli RPi
+- Access: Via IP atau hostname.local
 
 ### Security
 
-- **Ganti Password**: Settings → Security
-- **Session**: 24 jam
+- Ganti Password: Settings -> Security
+- Session: 24 jam
 
 ---
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Audio tidak keluar
 
@@ -245,22 +240,22 @@ sudo systemctl restart bel-sekolah
 
 ---
 
-## 📊 Database Schema
+## Database Schema
 
 | Table            | Fungsi                          |
 | ---------------- | ------------------------------- |
-| `sounds`         | File audio (name, file_path)    |
-| `playlists`      | Playlist header                 |
-| `playlist_items` | Urutan file dalam playlist      |
-| `schedules`      | Jadwal bel                      |
-| `categories`     | Kategori (normal, ujian, puasa) |
-| `history`        | Log playback                    |
-| `users`          | User login                      |
-| `app_settings`   | Pengaturan aplikasi             |
+| sounds           | File audio (name, file_path)    |
+| playlists        | Playlist header                 |
+| playlist_items   | Urutan file dalam playlist      |
+| schedules        | Jadwal bel                      |
+| categories       | Kategori (normal, ujian, puasa) |
+| history          | Log playback                    |
+| users            | User login                      |
+| app_settings     | Pengaturan aplikasi             |
 
 ---
 
-## 🛠️ Development
+## Development
 
 ### Requirements
 
@@ -289,17 +284,17 @@ curl http://localhost:5000/api/core-status
 
 ---
 
-## 📋 Changelog
+## Changelog
 
 ### v3.0 (Current)
 
-- ✅ Subfolder support untuk sounds
-- ✅ Manage Sounds UI (bulk upload, sync)
-- ✅ Playlist system
-- ✅ Settings via database
-- ✅ No pygame (mpg123/aplay)
-- ✅ Responsive mobile UI
-- ✅ Auto-sync sounds
+- Subfolder support untuk sounds
+- Manage Sounds UI (bulk upload, sync)
+- Playlist system
+- Settings via database
+- No pygame (mpg123/aplay)
+- Responsive mobile UI
+- Auto-sync sounds
 
 ### v2.0
 
@@ -314,31 +309,31 @@ curl http://localhost:5000/api/core-status
 
 ---
 
-## 💡 Tips
+## Tips
 
-1. **Organisir sounds dalam folder** - bel/, murottal/, doa/
-2. **Gunakan playlist untuk murottal** - Lebih mudah manage
-3. **Backup database rutin** - `cp database.db backup/`
-4. **Test sebelum schedule** - Play manual dulu
-5. **Sync setelah copy file** - Manage Sounds → Sync
-
----
-
-## 📄 License
-
-Aplikasi ini dibuat untuk **SDIT Harapan Umat Jember**.
+1. Organisir sounds dalam folder - bel/, murottal/, doa/
+2. Gunakan playlist untuk murottal - Lebih mudah manage
+3. Backup database rutin - cp database.db backup/
+4. Test sebelum schedule - Play manual dulu
+5. Sync setelah copy file - Manage Sounds -> Sync
 
 ---
 
-## 🤝 Support
+## License
 
-- **Version**: 3.0
-- **Platform**: Raspberry Pi 3B+/4/5
-- **OS**: Raspberry Pi OS
-- **Python**: 3.8+
-
-**GitHub**: https://github.com/iaiapps/school-bel-python-web
+Aplikasi ini dibuat untuk SDIT Harapan Umat Jember.
 
 ---
 
-**Developed with ❤️ iaiapps | 2026**
+## Support
+
+- Version: 3.0
+- Platform: Raspberry Pi 3B+/4/5
+- OS: Raspberry Pi OS
+- Python: 3.8+
+
+GitHub: https://github.com/iaiapps/school-bel-python-web
+
+---
+
+Developed by iaiapps | 2026

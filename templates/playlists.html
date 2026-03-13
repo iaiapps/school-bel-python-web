@@ -227,7 +227,8 @@
               const itemsRes = await fetch(
                 `/api/playlists/${playlist.id}/items`,
               );
-              const items = await itemsRes.json();
+              const data = await itemsRes.json();
+              const items = data.items || [];
               if (items.length > 0) {
                 previewDiv.innerHTML = items
                   .map(

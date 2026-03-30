@@ -1,0 +1,212 @@
+{
+  "name": "Sekolah dasar Islam Terpadu",
+  "description": "Template jadwal default SDIT",
+  "default_sound": "bell/shift.wav",
+  "days": {
+    "Senin": [
+      {
+        "time": "07:15",
+        "activity": "SHOLAT DHUHA",
+        "sound": "bell/start.wav"
+      },
+      {
+        "time": "07:30",
+        "activity": "APEL PAGI",
+        "sound": "bell/enter.wav"
+      },
+      {
+        "time": "08:00",
+        "activity": "BTAQ"
+      },
+      {
+        "time": "08:30",
+        "activity": "BINA KELAS"
+      },
+      {
+        "time": "09:00",
+        "activity": "MAPEL I"
+      },
+      {
+        "time": "09:30",
+        "activity": "MAPEL II"
+      },
+      {
+        "time": "10:00",
+        "activity": "ISTIRAHAT I",
+        "sound": "bell/break.wav"
+      },
+      {
+        "time": "10:15",
+        "activity": "MAPEL III"
+      },
+      {
+        "time": "10:45",
+        "activity": "MAPEL IV"
+      },
+      {
+        "time": "11:15",
+        "activity": "ISHOMA II",
+        "sound": "bell/break.wav"
+      },
+      {
+        "time": "12:25",
+        "activity": "MAPEL V"
+      },
+      {
+        "time": "12:55",
+        "activity": "MAPEL VI"
+      },
+      {
+        "time": "13:25",
+        "activity": "PULANG",
+        "sound": "bell/shift.wav"
+      }
+    ],
+    "Selasa": [
+      {
+        "time": "07:15",
+        "activity": "SHOLAT DHUHA",
+        "sound": "bell/start.wav"
+      },
+      {
+        "time": "07:30",
+        "activity": "BTAQ",
+        "sound": "bell/enter.wav"
+      },
+      {
+        "time": "08:00",
+        "activity": "MAPEL I"
+      },
+      {
+        "time": "08:30",
+        "activity": "MAPEL II"
+      },
+      {
+        "time": "09:00",
+        "activity": "MAPEL III"
+      },
+      {
+        "time": "09:30",
+        "activity": "MAPEL IV"
+      },
+      {
+        "time": "10:00",
+        "activity": "ISTIRAHAT I",
+        "sound": "bell/break.wav"
+      },
+      {
+        "time": "10:15",
+        "activity": "MAPEL V"
+      },
+      {
+        "time": "10:45",
+        "activity": "MAPEL VI"
+      },
+      {
+        "time": "11:15",
+        "activity": "ISHOMA II"
+      },
+      {
+        "time": "12:25",
+        "activity": "MAPEL VII"
+      },
+      {
+        "time": "12:55",
+        "activity": "MAPEL VIII"
+      },
+      {
+        "time": "13:25",
+        "activity": "ISTIRAHAT III",
+        "sound": "bell/break.wav"
+      },
+      {
+        "time": "13:40",
+        "activity": "MAPEL IX"
+      },
+      {
+        "time": "14:10",
+        "activity": "MAPEL X"
+      },
+      {
+        "time": "15:00",
+        "activity": "SHOLAT ASAR BERJAMA'AH DAN PULANG",
+        "sound": "bell/break.wav"
+      }
+    ],
+    "Rabu": "Selasa",
+    "Kamis": "Selasa",
+    "Jumat": [
+      {
+        "time": "07:15",
+        "activity": "SHOLAT DHUHA",
+        "sound": "bell/start.wav"
+      },
+      {
+        "time": "07:30",
+        "activity": "SENAM / BERKISAH",
+        "sound": "bell/enter.wav"
+      },
+      {
+        "time": "08:00",
+        "activity": "BTAQ"
+      },
+      {
+        "time": "08:30",
+        "activity": "MAPEL I"
+      },
+      {
+        "time": "08:55",
+        "activity": "MAPEL II"
+      },
+      {
+        "time": "09:20",
+        "activity": "MAPEL III"
+      },
+      {
+        "time": "09:45",
+        "activity": "MAPEL IV"
+      },
+      {
+        "time": "10:10",
+        "activity": "ISTIRAHAT",
+        "sound": "bell/break.wav"
+      },
+      {
+        "time": "10:25",
+        "activity": "MAPEL V"
+      },
+      {
+        "time": "10:50",
+        "activity": "MAPEL VI"
+      },
+      {
+        "time": "11:15",
+        "activity": "SHOLAT JUM'AT",
+        "sound": "bell/start.wav"
+      },
+      {
+        "time": "12:00",
+        "activity": "ISTIRAHAT",
+        "sound": "bell/break.wav"
+      },
+      {
+        "time": "12:30",
+        "activity": "PRAMUKA"
+      },
+      {
+        "time": "13:30",
+        "activity": "ESKTRA"
+      },
+      {
+        "time": "14:30",
+        "activity": "SHOLAT ASAR",
+        "sound": "bell/shift.wav"
+      },
+      {
+        "time": "15:00",
+        "activity": "PULANG",
+        "sound": "bell/break.wav"
+      }
+    ]
+  }
+}

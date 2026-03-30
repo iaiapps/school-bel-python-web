@@ -359,10 +359,10 @@
     let syncPreview = null;
 
     // Load on page load
-    document.addEventListener("DOMContentLoaded", () => {
-      loadSounds();
-      loadFolders();
+    document.addEventListener("DOMContentLoaded", async () => {
       setupDragDrop();
+      await loadSounds();
+      await loadFolders();
     });
 
     // Load sounds list
@@ -377,7 +377,7 @@
         if (currentSounds.length === 0) {
           tbody.innerHTML = `
                     <tr>
-                        <td colspan="4" class="text-center text-muted py-4">
+                        <td colspan="5" class="text-center text-muted py-4">
                             <i class="fas fa-music fa-2x mb-3"></i>
                             <p>No sounds yet. Upload or sync folder.</p>
                         </td>
@@ -399,6 +399,9 @@
                         <button class="btn btn-sm btn-outline-primary" onclick="playSound(${sound.id})" title="Play">
                             <i class="fas fa-play"></i>
                         </button>
+                        <a href="/download/sound/${sound.id}" class="btn btn-sm btn-outline-success" title="Download">
+                            <i class="fas fa-download"></i>
+                        </a>
                         <button class="btn btn-sm btn-outline-danger" onclick="deleteSound(${sound.id})" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -687,9 +690,9 @@
     }
 
     // Refresh list
-    function refreshList() {
-      loadSounds();
-      loadFolders();
+    async function refreshList() {
+      await loadSounds();
+      await loadFolders();
     }
 
     // Drag and drop setup

@@ -138,7 +138,8 @@
               <form method="POST" action="/settings/general">
                 <div class="mb-3">
                   <label class="form-label">Nama Aplikasi / Sekolah</label>
-                  <input type="text" class="form-control" name="app_name" value="{{ settings.app_name }}" placeholder="Contoh: SDIT Harapan Umat" required>
+                  <input type="text" class="form-control" name="app_name" value="{{ settings.app_name }}"
+                    placeholder="Contoh: SDIT Harapan Umat" required>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Timezone</label>
@@ -152,7 +153,7 @@
                   </select>
                 </div>
                 {# Theme options - commented out, will be implemented later #}
-                {# 
+                {#
                 <div class="mb-3">
                   <label class="form-label">Theme</label>
                   <select class="form-select" name="theme">
@@ -219,7 +220,7 @@
                     <option value="hdmi" {% if settings.audio_output=='hdmi' %}selected{% endif %}>HDMI</option>
                   </select>
                 </div>
-                <button type="submit" class="btn btn-primary mb-2">
+                <button type="submit" class="btn btn-primary">
                   <i class="fas fa-save me-2"></i>Simpan & Apply
                 </button>
                 <button type="button" class="btn btn-success" onclick="testAudio()">

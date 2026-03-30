@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, send_from_directory
 import os
 import sqlite3
 import datetime
@@ -9,6 +9,7 @@ from database import init_db, get_history, clear_history, get_user_by_username, 
 from database import get_all_categories, get_active_category, set_active_category, add_category, delete_category, get_schedules_by_category
 from database import get_all_playlists, get_playlist, get_playlist_items, get_playlist_sound_files
 from database import add_playlist, update_playlist, delete_playlist, add_playlist_item, remove_playlist_item, reorder_playlist_items
+from schedule_templates import get_template, expand_template, list_templates
 from config import Config
 import core
 import threading
@@ -322,6 +323,35 @@ def delete_sound(sound_id):
     flash("Sound berhasil dihapus.", "success")
     return redirect(url_for("upload"))
 
+# ───── UNDUH SOUND ─────
+@app.route("/download/sound/<int:sound_id>")
+@login_required
+def download_sound(sound_id):
+    with _connect() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT file_name FROM sounds WHERE id = ?", (sound_id,))
+        row = cur.fetchone()
+        
+        if not row:
+            flash("Sound tidak ditemukan.", "danger")
+            return redirect(url_for("upload"))
+        
+        filename = row[0]
+    
+    safe_filename = secure_filename(filename)
+    filepath = os.path.join(Config.UPLOAD_FOLDER, safe_filename)
+    
+    if not os.path.exists(filepath):
+        flash("File sound tidak ditemukan di server.", "danger")
+        return redirect(url_for("upload"))
+    
+    return send_from_directory(
+        Config.UPLOAD_FOLDER,
+        safe_filename,
+        as_attachment=True,
+        download_name=filename
+    )
+
 # ───── LIHAT JADWAL ─────
 @app.route("/schedule")
 @login_required
@@ -479,21 +509,20 @@ def reset_schedule():
 @app.route("/import-schedule", methods=["POST"])
 @login_required
 def import_schedule():
-    """Import jadwal default SDIT Harapan Umat"""
+    """Import jadwal dari template"""
     
-    from config import Config
-    
-    # Get active category
     active_cat = get_active_category()
     active_category = active_cat[1] if active_cat else 'normal'
     
-    # Default sound file
-    default_sound = "bell.mp3"
+    template = get_template('sdit_default')
+    if not template:
+        flash("Template tidak ditemukan!", "danger")
+        return redirect(url_for("schedule"))
     
-    # Cek apakah sound file exists
+    default_sound = template.get('default_sound', 'bell/shift.wav')
     sound_path = os.path.join(Config.UPLOAD_FOLDER, default_sound)
+    
     if not os.path.exists(sound_path):
-        # Cari sound pertama yang ada di database
         with _connect() as conn:
             cur = conn.cursor()
             cur.execute("SELECT file_name FROM sounds LIMIT 1")
@@ -504,82 +533,19 @@ def import_schedule():
                 flash("Tidak ada file sound! Upload sound dulu.", "danger")
                 return redirect(url_for("schedule"))
     
-    # Jadwal SELASA/RABU/KAMIS (identik)
-    hari_antara = [
-        ("Selasa", "07:15", "SHOLAT DHUHA", default_sound, active_category),
-        ("Selasa", "07:30", "BTAQ", default_sound, active_category),
-        ("Selasa", "08:00", "MAPEL I", default_sound, active_category),
-        ("Selasa", "08:30", "MAPEL II", default_sound, active_category),
-        ("Selasa", "09:00", "MAPEL III", default_sound, active_category),
-        ("Selasa", "09:30", "MAPEL IV", default_sound, active_category),
-        ("Selasa", "10:00", "ISTIRAHAT I", default_sound, active_category),
-        ("Selasa", "10:15", "MAPEL V", default_sound, active_category),
-        ("Selasa", "10:45", "MAPEL VI", default_sound, active_category),
-        ("Selasa", "11:15", "ISHOMA II", default_sound, active_category),
-        ("Selasa", "12:25", "MAPEL VII", default_sound, active_category),
-        ("Selasa", "12:55", "MAPEL VIII", default_sound, active_category),
-        ("Selasa", "13:25", "ISTIRAHAT III", default_sound, active_category),
-        ("Selasa", "13:40", "MAPEL IX", default_sound, active_category),
-        ("Selasa", "14:10", "MAPEL X", default_sound, active_category),
-        ("Selasa", "15:00", "SHOLAT ASAR BERJAMA'AH DAN PULANG", default_sound, active_category),
-    ]
-    
-    # Jadwal lengkap
-    schedules_data = [
-        # SENIN
-        ("Senin", "07:15", "SHOLAT DHUHA", default_sound, active_category),
-        ("Senin", "07:30", "APEL PAGI", default_sound, active_category),
-        ("Senin", "08:00", "BTAQ", default_sound, active_category),
-        ("Senin", "08:30", "BINA KELAS", default_sound, active_category),
-        ("Senin", "09:00", "MAPEL I", default_sound, active_category),
-        ("Senin", "09:30", "MAPEL II", default_sound, active_category),
-        ("Senin", "10:00", "ISTIRAHAT I", default_sound, active_category),
-        ("Senin", "10:15", "MAPEL III", default_sound, active_category),
-        ("Senin", "10:45", "MAPEL IV", default_sound, active_category),
-        ("Senin", "11:15", "ISHOMA II", default_sound, active_category),
-        ("Senin", "12:25", "MAPEL V", default_sound, active_category),
-        ("Senin", "12:55", "MAPEL VI", default_sound, active_category),
-        ("Senin", "13:25", "PULANG", default_sound, active_category),
-    ] + hari_antara + hari_antara + hari_antara + [
-        # JUM'AT
-        ("Jumat", "07:15", "SHOLAT DHUHA", default_sound, active_category),
-        ("Jumat", "07:30", "SENAM / BERKISAH", default_sound, active_category),
-        ("Jumat", "08:00", "BTAQ", default_sound, active_category),
-        ("Jumat", "08:30", "MAPEL I", default_sound, active_category),
-        ("Jumat", "08:55", "MAPEL II", default_sound, active_category),
-        ("Jumat", "09:20", "MAPEL III", default_sound, active_category),
-        ("Jumat", "09:45", "MAPEL IV", default_sound, active_category),
-        ("Jumat", "10:10", "ISTIRAHAT", default_sound, active_category),
-        ("Jumat", "10:25", "MAPEL V", default_sound, active_category),
-        ("Jumat", "10:50", "MAPEL VI", default_sound, active_category),
-        ("Jumat", "11:15", "SHOLAT JUM'AT", default_sound, active_category),
-        ("Jumat", "12:00", "ISTIRAHAT", default_sound, active_category),
-        ("Jumat", "12:30", "PRAMUKA", default_sound, active_category),
-        ("Jumat", "13:30", "ESKTRA", default_sound, active_category),
-        ("Jumat", "14:30", "SHOLAT ASAR", default_sound, active_category),
-        ("Jumat", "15:00", "PULANG", default_sound, active_category),
-    ]
-    
-    # Ganti nama hari untuk RABU dan KAMIS
-    schedules_data_rabu = [(day.replace("Selasa", "Rabu"), t, a, s, c) for day, t, a, s, c in hari_antara]
-    schedules_data_kamis = [(day.replace("Selasa", "Kamis"), t, a, s, c) for day, t, a, s, c in hari_antara]
-    
-    schedules_data = schedules_data + schedules_data_rabu + schedules_data_kamis
+    schedules_data = expand_template(template, active_category, default_sound)
     
     try:
         with _connect() as conn:
             cur = conn.cursor()
             
-            # Cek apakah sudah ada jadwal (untuk mencegah duplikasi)
-            cur.execute("SELECT COUNT(*) FROM schedules")
+            cur.execute("SELECT COUNT(*) FROM schedules WHERE category = ?", (active_category,))
             existing_count = cur.fetchone()[0]
             
             if existing_count > 0:
-                # Hapus jadwal lama dulu
-                cur.execute("DELETE FROM schedules")
-                flash(f"Menghapus {existing_count} jadwal lama...", "info")
+                cur.execute("DELETE FROM schedules WHERE category = ?", (active_category,))
+                flash(f"Menghapus {existing_count} jadwal lama di kategori '{active_category}'...", "info")
             
-            # Insert jadwal baru
             cur.executemany("""
                 INSERT INTO schedules (day_of_week, time, activity, sound_file, category)
                 VALUES (?, ?, ?, ?, ?)

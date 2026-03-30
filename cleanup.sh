@@ -122,6 +122,11 @@ do_reset() {
         rm -rf venv
     fi
     
+    # Remove Python cache
+    echo "→ Removing Python cache..."
+    find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+    find . -name "*.pyc" -delete 2>/dev/null || true
+    
     # Stop service (karena venv hilang)
     stop_service
     

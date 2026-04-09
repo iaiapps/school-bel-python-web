@@ -26,15 +26,19 @@ HARI_MAP = {
 
 # untuk mencegah memutar berkali-kali dalam selang 1 menit
 last_played = set()
+_last_played_lock = threading.Lock()  # Lock untuk last_played
+
 current_playing = None  # simpan file yang sedang diputar
+
 scheduler_running = False  # status scheduler
+_scheduler_lock = threading.Lock()  # Lock untuk scheduler state
 
 # Audio subprocess handler
 _current_audio_process = None
 _audio_lock = threading.Lock()  # Lock untuk race condition
 
-# Lock untuk playlist execution
-_playlist_lock = threading.Lock()
+# Lock untuk playlist execution - gunakan RLock untuk reentrant
+_playlist_lock = threading.RLock()
 
 # Flag untuk mencegah nested playlist play
 _is_playing_playlist = False
@@ -134,13 +138,22 @@ def check_and_play_new_schedule():
         for jadwal_time, activity, sound_file in rows:
             if jadwal_time == hhmm:
                 key = f"{current_day}-{jadwal_time}-{sound_file}-{active_category}"
-                if key not in last_played:
+                
+                # Use lock for thread-safe access to last_played
+                with _last_played_lock:
+                    is_new = key not in last_played
+                    if is_new:
+                        last_played.add(key)
+                
+                if is_new:
                     # Stop current audio first - use lock for thread safety
                     with _audio_lock:
                         is_playing = _current_audio_process is not None and _current_audio_process.poll() is None
                     
                     if is_playing:
-                        print(f"[CORE] Stop audio untuk jadwal baru: {current_playing}")
+                        with _audio_lock:
+                            current_name = current_playing
+                        print(f"[CORE] Stop audio untuk jadwal baru: {current_name}")
                         # Try to acquire playlist lock to stop playlist
                         if _playlist_lock.acquire(blocking=False):
                             try:
@@ -152,7 +165,6 @@ def check_and_play_new_schedule():
                             stop_sound()
                     
                     # Return schedule info for caller to play (avoid nested call)
-                    last_played.add(key)
                     return {
                         'day': current_day,
                         'time': jadwal_time,
@@ -195,6 +207,8 @@ def _play_playlist(playlist_id, activity="Playlist"):
         print("[CORE] Playlist sedang berjalan, skip request baru")
         return
     
+    schedule_info = None  # Initialize outside loop to persist after break
+    
     try:
         files = get_playlist_sound_files(playlist_id)
         
@@ -209,7 +223,11 @@ def _play_playlist(playlist_id, activity="Playlist"):
             # Reset flag
             new_schedule_detected = False
             
-            if not scheduler_running:
+            # Check scheduler_running with lock for thread safety
+            with _scheduler_lock:
+                is_running = scheduler_running
+            
+            if not is_running:
                 print("[CORE] Scheduler berhenti, playlist dihentikan")
                 break
             
@@ -226,7 +244,11 @@ def _play_playlist(playlist_id, activity="Playlist"):
                     process = _current_audio_process
                 
                 while process is not None and process.poll() is None:
-                    if not scheduler_running:
+                    # Check scheduler_running with lock for thread safety
+                    with _scheduler_lock:
+                        is_running = scheduler_running
+                    
+                    if not is_running:
                         print("[CORE] Scheduler berhenti")
                         break
                     
@@ -254,7 +276,12 @@ def _play_playlist(playlist_id, activity="Playlist"):
                 continue
         
         _is_playing_playlist = False
-        print(f"[CORE] Playlist selesai")
+        
+        if new_schedule_detected and schedule_info:
+            print("[CORE] Memutar jadwal baru setelah playlist...")
+            _play_schedule_from_dict(schedule_info)
+        else:
+            print(f"[CORE] Playlist selesai")
     finally:
         _playlist_lock.release()
 
@@ -308,12 +335,23 @@ def log_history(day_id, jam, activity, sound_file):
         print(f"[CORE] Gagal menulis history: {e}")
 
 def start_scheduler():
-    print("[CORE] Scheduler dimulai.")
+    """Start the scheduler - thread safe with double-start prevention"""
     global last_played, current_playing, scheduler_running, last_active_category
-    scheduler_running = True
-    last_active_category = None
-
-    while scheduler_running:
+    
+    # Use lock to prevent race condition with double start
+    with _scheduler_lock:
+        if scheduler_running:
+            print("[CORE] Scheduler sudah berjalan, skip start")
+            return
+        scheduler_running = True
+        last_active_category = None
+        print("[CORE] Scheduler dimulai.")
+    
+    while True:
+        # Check scheduler_running with lock for thread safety
+        with _scheduler_lock:
+            if not scheduler_running:
+                break
         now = datetime.datetime.now()
         current_day_eng = now.strftime("%A")
         current_day = HARI_MAP.get(current_day_eng, current_day_eng)  # ex: Senin
@@ -328,7 +366,8 @@ def start_scheduler():
         # Reset last_played jika category berubah
         if last_active_category != active_category:
             print(f"[CORE] Kategori berubah: {last_active_category} -> {active_category}")
-            last_played.clear()
+            with _last_played_lock:
+                last_played.clear()
             last_active_category = active_category
 
         try:
@@ -348,11 +387,25 @@ def start_scheduler():
         for jadwal_time, activity, sound_file in rows:
             if jadwal_time == hhmm:
                 key = f"{current_day}-{jadwal_time}-{sound_file}-{active_category}"
-                if key not in last_played:
+                
+                # Use lock for thread-safe access to last_played
+                with _last_played_lock:
+                    is_new = key not in last_played
+                
+                if is_new:
                     # hentikan audio lama kalau masih main
                     if _is_audio_playing():
-                        print(f"[CORE] Stop audio lama: {current_playing}")
-                        stop_sound()
+                        with _audio_lock:
+                            current_name = current_playing
+                        print(f"[CORE] Stop audio lama: {current_name}")
+                        # Use lock to stop playlist properly
+                        if _playlist_lock.acquire(blocking=False):
+                            try:
+                                stop_sound()
+                            finally:
+                                _playlist_lock.release()
+                        else:
+                            stop_sound()
 
                     # Cek apakah sound_file adalah playlist (format: "playlist:<id>")
                     if sound_file.startswith("playlist:"):
@@ -369,22 +422,27 @@ def start_scheduler():
                         print(f"[CORE] Memutar bel: {sound_file} | {activity} ({current_day} {jadwal_time}) [Kategori: {active_category}]")
                         play_sound(sound_file, activity)
                     
-                    last_played.add(key)
+                    # Use lock for thread-safe add to last_played
+                    with _last_played_lock:
+                        last_played.add(key)
 
         # bersihkan set sesekali
         if len(last_played) > 2000:
             # buang entri yang bukan hari & waktu sekarang agar tidak tumbuh tak terbatas
-            last_played = {k for k in last_played if hhmm in k and current_day in k and active_category in k}
+            with _last_played_lock:
+                last_played = {k for k in last_played if hhmm in k and current_day in k and active_category in k}
 
         time.sleep(1)  # cek tiap detik agar tepat waktu
 
 def stop_scheduler():
-    """Berhentikan scheduler"""
+    """Berhentikan scheduler - thread safe"""
     global scheduler_running
-    scheduler_running = False
+    with _scheduler_lock:
+        scheduler_running = False
     stop_sound()
     print("[CORE] Scheduler dihentikan.")
 
 def is_running():
-    """Cek apakah scheduler aktif"""
-    return scheduler_running
+    """Cek apakah scheduler aktif - thread safe"""
+    with _scheduler_lock:
+        return scheduler_running

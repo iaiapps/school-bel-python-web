@@ -1,17 +1,11 @@
-<!doctype html>
-<html lang="id">
+{% extends "base.html" %}
+{% block title %}Kelola Sounds - Aplikasi Bel Sekolah{% endblock %}
+{% block header_title %}Kelola Sounds{% endblock %}
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#ff5722" />
-  <title>Manage Sounds - Aplikasi Bel Sekolah</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="/static/css/style.css" />
+{% block styles %}
   <style>
     .folder-header {
-      background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
+      background-color: #ff5722;
       color: white;
       padding: 10px 15px;
       border-radius: 8px;
@@ -34,7 +28,7 @@
     .drag-drop-area {
       border: 2px dashed #ff5722 !important;
       background-color: #fff3e0;
-      transition: all 0.3s;
+      transition: background-color 0.3s, border-color 0.3s;
     }
 
     .drag-drop-area:hover {
@@ -62,40 +56,15 @@
       font-size: 1.3rem;
     }
   </style>
-</head>
+{% endblock %}
 
-<body>
-  <div class="container main-container">
-    <!-- Navigation -->
-    <div class="bg-white shadow-sm p-3 mb-4">
-      <div class="container d-flex justify-content-between align-items-center">
-        <p class="fs-5 mb-0 fw-bold">Manage Sounds</p>
-        <div>
-          <a href="/settings" class="btn btn-sm btn-outline-primary me-2">
-            <i class="fas fa-cog"></i>
-          </a>
-          <a href="/logout" class="btn btn-sm btn-outline-danger">
-            <i class="fas fa-sign-out-alt"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-
+{% block content %}
     <!-- Back Button -->
-    <div class="mb-4">
-      <a href="/" class="quick-action-btn text-decoration-none">
+    <div class="mb-3">
+      <a href="/" class="btn btn-sm btn-outline-secondary text-decoration-none">
         <i class="fas fa-arrow-left"></i> Kembali
       </a>
     </div>
-
-    <!-- Alert -->
-    {% with messages = get_flashed_messages(with_categories=True) %} {% if
-    messages %} {% for category, message in messages %}
-    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-      {{ message }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endfor %} {% endif %} {% endwith %}
 
     <!-- Actions Bar -->
     <div class="card mb-3">
@@ -103,10 +72,10 @@
         <div class="row g-2 align-items-center">
           <div class="col-6">
             <button class="btn btn-primary btn-sm w-100 mb-1" onclick="syncSounds()">
-              <i class="fas fa-sync"></i> Sync
+              <i class="fas fa-sync"></i> Sinkronkan
             </button>
             <button class="btn btn-outline-secondary btn-sm w-100" onclick="refreshList()">
-              <i class="fas fa-redo"></i> Refresh
+              <i class="fas fa-redo"></i> Muat Ulang
             </button>
           </div>
           <div class="col-6 text-end">
@@ -114,7 +83,7 @@
               <i class="fas fa-upload"></i> Upload
             </button>
             <button class="btn btn-outline-primary btn-sm w-100" onclick="showFolderModal()">
-              <i class="fas fa-folder-plus"></i> New Folder
+              <i class="fas fa-folder-plus"></i> Folder Baru
             </button>
           </div>
         </div>
@@ -135,7 +104,7 @@
         <div class="card bg-success text-white stats-card">
           <div class="card-body text-center py-2">
             <h5 id="foldersCount" class="mb-0">0</h5>
-            <small>Folders</small>
+            <small>Folder</small>
           </div>
         </div>
       </div>
@@ -143,7 +112,7 @@
         <div class="card bg-info text-white stats-card">
           <div class="card-body text-center py-2">
             <h5 id="newFilesPreview" class="mb-0">0</h5>
-            <small>New</small>
+            <small>Baru</small>
           </div>
         </div>
       </div>
@@ -151,7 +120,7 @@
         <div class="card bg-warning text-white stats-card">
           <div class="card-body text-center py-2">
             <h5 id="missingFilesPreview" class="mb-0">0</h5>
-            <small>Missing</small>
+            <small>Hilang</small>
           </div>
         </div>
       </div>
@@ -159,14 +128,12 @@
 
     <!-- Folder Structure -->
     <div class="card mb-4">
-      <div class="card-header">
-        <i class="fas fa-folder-tree"></i> Folder Structure
-      </div>
+<div class="card-header"><i class="fas fa-folder-tree" aria-hidden="true"></i> Struktur Folder</div>
       <div class="card-body">
         <div id="folderStructure">
           <div class="text-center text-muted py-4">
             <i class="fas fa-spinner fa-spin fa-2x"></i>
-            <p class="mt-2">Loading...</p>
+            <p class="mt-2">Memuat…</p>
           </div>
         </div>
       </div>
@@ -174,26 +141,26 @@
 
     <!-- List View -->
     <div class="card">
-      <div class="card-header"><i class="fas fa-list"></i> All Sounds</div>
+      <div class="card-header"><i class="fas fa-list" aria-hidden="true"></i> Semua Sounds</div>
       <div class="card-body">
         <div class="table-responsive">
           <table class="table table-hover">
             <thead>
               <tr>
                 <th width="50">
-                  <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" />
+                  <input type="checkbox" id="selectAll" aria-label="Pilih semua sound" onchange="toggleSelectAll()" />
                 </th>
-                <th>Name</th>
+                <th>Nama</th>
                 <th>Path</th>
-                <th width="100">Duration</th>
-                <th width="150">Actions</th>
+                <th width="100">Durasi</th>
+                <th width="150">Aksi</th>
               </tr>
             </thead>
             <tbody id="soundsTable">
               <tr>
                 <td colspan="5" class="text-center text-muted py-4">
                   <i class="fas fa-spinner fa-spin fa-2x"></i>
-                  <p class="mt-2">Loading sounds...</p>
+                  <p class="mt-2">Memuat sounds...</p>
                 </td>
               </tr>
             </tbody>
@@ -201,7 +168,6 @@
         </div>
       </div>
     </div>
-  </div>
 
   <!-- Sync Preview Modal -->
   <div class="modal fade" id="syncModal" tabindex="-1">
@@ -209,50 +175,50 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">
-            <i class="fas fa-sync"></i> Sync Preview
+            <i class="fas fa-sync" aria-hidden="true"></i> Pratinjau Sinkronisasi
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="alert alert-info">
             <i class="fas fa-info-circle"></i>
-            Preview menunjukkan perubahan yang akan dilakukan ke database.
+            Pratinjau menunjukkan perubahan yang akan dilakukan ke database.
           </div>
 
           <div class="row">
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
               <div class="card bg-success text-white mb-3">
                 <div class="card-body text-center">
                   <h4 id="previewNew">0</h4>
-                  <small>New Files</small>
+                  <small>File Baru</small>
                 </div>
               </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
               <div class="card bg-warning text-white mb-3">
                 <div class="card-body text-center">
                   <h4 id="previewMissing">0</h4>
-                  <small>Missing Files</small>
+                  <small>File Hilang</small>
                 </div>
               </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
               <div class="card bg-secondary text-white mb-3">
                 <div class="card-body text-center">
                   <h4 id="previewUnchanged">0</h4>
-                  <small>Unchanged</small>
+                  <small>Tanpa Perubahan</small>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="mb-3">
-            <h6>📥 New Files (akan ditambahkan):</h6>
+            <h6><i class="fas fa-download me-1"></i>File Baru (akan ditambahkan):</h6>
             <ul id="previewNewList" class="list-group" style="max-height: 150px; overflow-y: auto"></ul>
           </div>
 
           <div class="mb-3">
-            <h6>📤 Missing Files (tidak ada di folder):</h6>
+            <h6><i class="fas fa-exclamation-triangle me-1"></i>File Hilang (tidak ada di folder):</h6>
             <ul id="previewMissingList" class="list-group" style="max-height: 150px; overflow-y: auto"></ul>
           </div>
 
@@ -262,15 +228,15 @@
               Hapus file yang tidak ada di folder dari database
             </label>
             <small class="text-muted d-block">Jika tidak dicentang, file hanya ditandai sebagai
-              missing</small>
+              hilang</small>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            Cancel
+            Batal
           </button>
           <button type="button" class="btn btn-primary" onclick="executeSync()">
-            <i class="fas fa-check"></i> Sync Now
+            <i class="fas fa-check"></i> Sinkronkan Sekarang
           </button>
         </div>
       </div>
@@ -290,21 +256,20 @@
         <div class="modal-body">
           <form id="uploadForm" enctype="multipart/form-data">
             <div class="mb-3">
-              <label class="form-label">Select Folder</label>
+              <label class="form-label">Pilih Folder</label>
               <select class="form-select" id="uploadFolder">
                 <option value="root">/ (Root)</option>
               </select>
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Audio Files (MP3/WAV)</label>
-              <div class="border rounded p-4 text-center drag-drop-area" id="dropZone"
-                onclick="document.getElementById('audioFiles').click()">
+              <label class="form-label">File Audio (MP3/WAV)</label>
+<div class="border rounded p-4 text-center drag-drop-area" id="dropZone" role="button" tabindex="0" aria-label="Area unggah sounds, klik atau seret file audio" onclick="document.getElementById('audioFiles').click()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('audioFiles').click()}">
                 <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
                 <p class="mb-1">
-                  <strong>Drag & drop files here or click to browse</strong>
+                  <strong>Seret & lepas file di sini atau klik untuk memilih</strong>
                 </p>
-                <small class="text-muted">Max 50 files, 10MB each</small>
+                <small class="text-muted">Maks 50 file, masing-masing 10MB</small>
                 <input type="file" id="audioFiles" name="files" multiple accept=".mp3,.wav" style="display: none"
                   onchange="updateFileList()" />
               </div>
@@ -314,7 +279,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            Cancel
+            Batal
           </button>
           <button type="button" class="btn btn-success" onclick="uploadFiles()">
             <i class="fas fa-upload"></i> Upload
@@ -330,30 +295,31 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">
-            <i class="fas fa-folder-plus"></i> New Folder
+            <i class="fas fa-folder-plus"></i> Folder Baru
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Folder Name</label>
-            <input type="text" class="form-control" id="newFolderName" placeholder="e.g., murottal, bel, doa" />
+            <label class="form-label">Nama Folder</label>
+            <input type="text" class="form-control" id="newFolderName" placeholder="contoh: murottal, bel, doa…" />
             <small class="text-muted">Huruf kecil, angka, dan strip saja</small>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            Cancel
+            Batal
           </button>
           <button type="button" class="btn btn-primary" onclick="createFolder()">
-            <i class="fas fa-plus"></i> Create Folder
+            <i class="fas fa-plus"></i> Buat Folder
           </button>
         </div>
       </div>
     </div>
   </div>
+{% endblock %}
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}
   <script>
     let currentSounds = [];
     let syncPreview = null;
@@ -365,8 +331,18 @@
       await loadFolders();
     });
 
-    // Load sounds list
-    async function loadSounds() {
+        const escapeHtml = (str) => {
+          if (typeof str !== 'string') return str;
+          return str.replace(/[&<>"]/g, (c) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;'
+          })[c]);
+        };
+        
+        // Load sounds list
+        async function loadSounds() {
       try {
         const res = await fetch("/api/sounds");
         currentSounds = await res.json();
@@ -379,7 +355,7 @@
                     <tr>
                         <td colspan="5" class="text-center text-muted py-4">
                             <i class="fas fa-music fa-2x mb-3"></i>
-                            <p>No sounds yet. Upload or sync folder.</p>
+                            <p class="mt-2">Belum ada sounds. Upload atau sinkronkan folder.</p>
                         </td>
                     </tr>
                 `;
@@ -391,22 +367,22 @@
           const tr = document.createElement("tr");
           tr.className = "sound-item";
           tr.innerHTML = `
-                    <td><input type="checkbox" class="sound-checkbox" value="${sound.id}"></td>
-                    <td><strong>${sound.name}</strong></td>
-                    <td><small class="text-muted">${sound.file_name}</small></td>
-                    <td><small class="text-muted">${sound.duration_formatted || '?'}</small></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="playSound(${sound.id})" title="Play">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <a href="/download/sound/${sound.id}" class="btn btn-sm btn-outline-success" title="Download">
-                            <i class="fas fa-download"></i>
-                        </a>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteSound(${sound.id})" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
+            <td><input type="checkbox" class="sound-checkbox" value="${escapeHtml(sound.id)}"></td>
+            <td><strong>${escapeHtml(sound.name)}</strong></td>
+            <td><small class="text-muted">${escapeHtml(sound.file_name)}</small></td>
+            <td><small class="text-muted">${escapeHtml(sound.duration_formatted || '?')}</small></td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary" onclick="playSound(${escapeHtml(sound.id)})" aria-label="Putar ${escapeHtml(sound.name)}" title="Putar">
+                <i class="fas fa-play" aria-hidden="true"></i>
+              </button>
+              <a href="/download/sound/${escapeHtml(sound.id)}" class="btn btn-sm btn-outline-success" title="Unduh" aria-label="Unduh ${escapeHtml(sound.name)}">
+                <i class="fas fa-download" aria-hidden="true"></i>
+              </a>
+              <button class="btn btn-sm btn-outline-danger" onclick="deleteSound(${escapeHtml(sound.id)})" title="Hapus" aria-label="Hapus ${escapeHtml(sound.name)}">
+                <i class="fas fa-trash" aria-hidden="true"></i>
+              </button>
+            </td>
+          `;
           tbody.appendChild(tr);
         });
 
@@ -414,7 +390,7 @@
           currentSounds.length;
       } catch (err) {
         console.error("Error loading sounds:", err);
-        alert("Error loading sounds");
+        alert("Gagal memuat sounds");
       }
     }
 
@@ -449,7 +425,7 @@
 
       if (nonRootFolders.length === 0) {
         container.innerHTML =
-          '<div class="text-muted">No folders yet. Create a folder to organize sounds.</div>';
+          '<div class="text-muted">Belum ada folder. Buat folder untuk mengorganisir sounds.</div>';
         return;
       }
 
@@ -459,12 +435,12 @@
           s.file_name.startsWith(folder + "/"),
         ).length;
         html += `
-                <div class="col-md-4 mb-3">
-                    <div class="folder-header">
-                        <i class="fas fa-folder me-2"></i>
-                        <strong>${folder}/</strong>
-                        <span class="badge bg-white text-dark float-end">${count} files</span>
-                    </div>
+                <div class="col-12 col-md-4 mb-3">
+<div class="folder-header">
+  <i class="fas fa-folder" aria-hidden="true"></i>
+  <strong>${escapeHtml(folder)}/</strong>
+  <span class="badge bg-white text-dark float-end">${count} file</span>
+</div>
                 </div>
             `;
       });
@@ -495,7 +471,7 @@
             ? syncPreview.new
               .map((f) => `<li class="list-group-item">📄 ${f}</li>`)
               .join("")
-            : '<li class="text-muted">None</li>';
+            : '<li class="text-muted">Tidak ada</li>';
 
         const missingList = document.getElementById("previewMissingList");
         missingList.innerHTML =
@@ -503,11 +479,11 @@
             ? syncPreview.missing
               .map((f) => `<li class="list-group-item">⚠️ ${f}</li>`)
               .join("")
-            : '<li class="text-muted">None</li>';
+            : '<li class="text-muted">Tidak ada</li>';
 
         new bootstrap.Modal(document.getElementById("syncModal")).show();
       } catch (err) {
-        alert("Error scanning folder: " + err);
+        alert("Gagal memindai folder: " + err);
       }
     }
 
@@ -526,7 +502,7 @@
 
         if (result.success) {
           alert(
-            `✓ Sync complete!\nAdded: ${result.added}\nRemoved: ${result.removed}`,
+            `✓ Sinkronisasi selesai!\nDitambahkan: ${result.added}\nDihapus: ${result.removed}`,
           );
           bootstrap.Modal.getInstance(
             document.getElementById("syncModal"),
@@ -536,7 +512,7 @@
           alert("✗ Error: " + result.message);
         }
       } catch (err) {
-        alert("Error syncing: " + err);
+        alert("Gagal sinkronisasi: " + err);
       }
     }
 
@@ -556,7 +532,7 @@
         return;
       }
 
-      let html = '<div class="small"><strong>Selected files:</strong><br>';
+      let html = '<div class="small"><strong>File dipilih:</strong><br>';
       Array.from(input.files).forEach((file, i) => {
         const size = (file.size / 1024 / 1024).toFixed(2);
         html += `${i + 1}. ${file.name} (${size} MB)<br>`;
@@ -570,12 +546,12 @@
       const folder = document.getElementById("uploadFolder").value;
 
       if (input.files.length === 0) {
-        alert("Select files first");
+        alert("Pilih file dulu");
         return;
       }
 
       if (input.files.length > 50) {
-        alert("Maximum 50 files at once");
+        alert("Maksimal 50 file sekaligus");
         return;
       }
 
@@ -594,7 +570,7 @@
         const result = await res.json();
 
         if (result.success) {
-          alert(`✓ Uploaded ${result.uploaded} files!`);
+          alert(`✓ Berhasil upload ${result.uploaded} file!`);
           bootstrap.Modal.getInstance(
             document.getElementById("uploadModal"),
           ).hide();
@@ -603,7 +579,7 @@
           alert("✗ Error: " + result.message);
         }
       } catch (err) {
-        alert("Error uploading: " + err);
+        alert("Gagal upload: " + err);
       }
     }
 
@@ -617,7 +593,7 @@
       const name = document.getElementById("newFolderName").value.trim();
 
       if (!name) {
-        alert("Enter folder name");
+        alert("Masukkan nama folder");
         return;
       }
 
@@ -631,7 +607,7 @@
         const result = await res.json();
 
         if (result.success) {
-          alert(`✓ Folder "${name}" created!`);
+          alert(`✓ Folder "${name}" berhasil dibuat!`);
           bootstrap.Modal.getInstance(
             document.getElementById("folderModal"),
           ).hide();
@@ -640,7 +616,7 @@
           alert("✗ Error: " + result.message);
         }
       } catch (err) {
-        alert("Error creating folder: " + err);
+        alert("Gagal membuat folder: " + err);
       }
     }
 
@@ -654,7 +630,7 @@
           alert("✗ " + result.message);
         }
       } catch (err) {
-        alert("Error playing sound: " + err);
+        alert("Gagal memutar sound: " + err);
       }
     }
 
@@ -662,7 +638,7 @@
     async function deleteSound(id) {
       if (
         !confirm(
-          "Delete this sound from database? File will remain in folder.",
+          "Hapus sound ini dari database? File akan tetap ada di folder.",
         )
       )
         return;
@@ -677,7 +653,7 @@
           alert("✗ Error: " + result.message);
         }
       } catch (err) {
-        alert("Error deleting: " + err);
+        alert("Gagal menghapus: " + err);
       }
     }
 
@@ -697,11 +673,19 @@
 
     // Drag and drop setup
     function setupDragDrop() {
-      const dropZone = document.getElementById("dropZone");
+        const dropZone = document.getElementById("dropZone");
 
-      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
-        dropZone.addEventListener(eventName, preventDefaults, false);
-      });
+        // Keyboard activation (Enter/Space) for accessibility
+        dropZone.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            document.getElementById('audioFiles').click();
+          }
+        });
+
+        ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+          dropZone.addEventListener(eventName, preventDefaults, false);
+        });
 
       function preventDefaults(e) {
         e.preventDefault();
@@ -731,7 +715,7 @@
         const files = dt.files;
 
         if (files.length > 50) {
-          alert("Maximum 50 files at once");
+          alert("Maksimal 50 file sekaligus");
           return;
         }
 
@@ -749,6 +733,4 @@
       }
     }
   </script>
-</body>
-
-</html>
+{% endblock %}

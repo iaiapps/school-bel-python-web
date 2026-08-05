@@ -1,0 +1,74 @@
+{% macro schedule_form(schedule=none, sounds=[], playlists=[], categories=[], is_edit=false) %}
+<form method="POST" class="row g-3">
+  {% if is_edit %}
+  <div class="col-12">
+    <label for="day" class="form-label">Hari</label>
+    <select class="form-select" id="day" name="day" required>
+      {% for h in ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"] %}
+      <option value="{{ h }}" {% if h == schedule[1] %}selected{% endif %}>{{ h }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% else %}
+  <div class="col-12">
+    <fieldset>
+      <legend class="col-form-label fw-bold">Pilih Hari (Bisa lebih dari satu)</legend>
+      <div class="border rounded p-3 mb-2" style="background-color: #f8f9fa">
+        {% for h in ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"] %}
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" name="days" value="{{ h }}" id="day{{ h }}" />
+          <label class="form-check-label" for="day{{ h }}">{{ h }}</label>
+        </div>
+        {% endfor %}
+      </div>
+      <small class="text-muted">
+        <i class="fas fa-info-circle" aria-hidden="true"></i> Pilih minimal 1 hari. Pilih
+        beberapa hari untuk membuat jadwal yang sama di hari tersebut.
+      </small>
+    </fieldset>
+  </div>
+  {% endif %}
+  <div class="col-12 col-md-6">
+    <label for="time" class="form-label">Waktu (HH:MM)</label>
+    <input type="time" id="time" name="time" class="form-control" value="{{ schedule[2] if schedule else '' }}" required />
+  </div>
+  <div class="col-12 col-md-6">
+    <label for="activity" class="form-label">Nama Kegiatan</label>
+    <input type="text" id="activity" name="activity" class="form-control" value="{{ schedule[3] if schedule else '' }}" required />
+  </div>
+  <div class="col-12 col-md-6">
+    <label for="soundSelect" class="form-label">Suara Bel / Playlist</label>
+    <select name="sound_file" class="form-select" id="soundSelect" required>
+      <option disabled {% if not schedule %}selected{% endif %}>--- pilih sound/playlist ---</option>
+      <optgroup label="Sound (Single File)">
+        {% for s in sounds %}
+        <option value="{{ s[0] }}" {% if schedule and schedule[4] == s[0] %}selected{% endif %}>🔊 {{ s[0] }} ({{ s[1] }})</option>
+        {% endfor %}
+      </optgroup>
+      <optgroup label="Playlist (Multiple Files)">
+        {% for playlist in playlists %}
+        <option value="playlist:{{ playlist[0] }}" {% if schedule and schedule[4] == 'playlist:' ~ playlist[0]|string %}selected{% endif %}>
+          📋 {{ playlist[1] }} ({{ playlist[5] }} file)
+        </option>
+        {% endfor %}
+      </optgroup>
+    </select>
+  </div>
+  <div class="col-12 col-md-6">
+    <label for="category" class="form-label">Kategori</label>
+    <select id="category" name="category" class="form-select" required>
+      {% for cat in categories %}
+      <option value="{{ cat[1] }}" style="color: {{ cat[3] }}" {% if schedule and cat[1] == schedule[5] %}selected{% endif %}>
+        {{ cat[1]|upper }} - {{ cat[2] or cat[1] }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-12">
+    <button type="submit" class="quick-action-btn">
+      <i class="fa-solid fa-download" aria-hidden="true"></i>
+      {% if is_edit %}Simpan Perubahan{% else %}Simpan Jadwal{% endif %}
+    </button>
+  </div>
+</form>
+{% endmacro %}

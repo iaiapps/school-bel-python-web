@@ -1,44 +1,8 @@
-<!doctype html>
-<html lang="id">
+{% extends "base.html" %}
+{% block title %}Dashboard Bel Otomatis{% endblock %}
+{% block header_title %}Bell Application{% endblock %}
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#ff5722" />
-  <title>Dashboard Bel Otomatis</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-  <link rel="stylesheet" href="/static/css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</head>
-
-<body>
-  <div class="container main-container">
-    <!-- Navigation -->
-    <div class="bg-white p-3 shadow-sm mb-4">
-      <div class="container d-flex justify-content-between align-items-center">
-        <p class="fs-5 mb-0 fw-bold">Bell Application</p>
-        <div>
-          <a href="/settings" class="btn btn-sm btn-outline-primary me-2">
-            <i class="fas fa-cog"></i>
-          </a>
-          <a href="/logout" class="btn btn-sm btn-outline-danger">
-            <i class="fas fa-sign-out-alt"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Alert -->
-    {% with messages = get_flashed_messages(with_categories=True) %} {% if
-    messages %} {% for category, message in messages %}
-    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-      {{ message }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endfor %} {% endif %} {% endwith %}
-
+{% block content %}
     <!-- Status Card -->
     <div class="status-card mb-3">
       <p class="mb-3 fs-4 text-center fw-bold">{{ app_name }}</p>
@@ -67,24 +31,13 @@
 
     <!-- Menu Grid - List on mobile, Grid on tablet/desktop -->
     <div class="menu-grid mb-3">
-      <!-- Upload Sound -->
-      <a href="/upload" class="text-decoration-none">
-        <div class="menu-card">
-          <div class="menu-icon"><i class="fas fa-upload"></i></div>
-          <div class="menu-text">
-            <h5 class="menu-title">Upload Sound</h5>
-            <p class="menu-description">File audio bel sekolah</p>
-          </div>
-        </div>
-      </a>
-
       <!-- Manage Sounds -->
       <a href="/sounds" class="text-decoration-none">
         <div class="menu-card">
           <div class="menu-icon"><i class="fas fa-folder-open"></i></div>
           <div class="menu-text">
-            <h5 class="menu-title">Manage Sounds</h5>
-            <p class="menu-description">Kelola folder & sync</p>
+            <h5 class="menu-title">Kelola Sounds</h5>
+            <p class="menu-description">Upload, kelola folder & sync</p>
           </div>
         </div>
       </a>
@@ -95,7 +48,7 @@
           <div class="menu-icon"><i class="fas fa-list-ul"></i></div>
           <div class="menu-text">
             <h5 class="menu-title">Playlist</h5>
-            <p class="menu-description">Murottal & sequence</p>
+            <p class="menu-description">Murottal & urutan</p>
           </div>
         </div>
       </a>
@@ -177,8 +130,9 @@
         {% endif %}
       </div>
     </div>
-  </div>
+{% endblock %}
 
+{% block scripts %}
   <script>
     // time
     function updateTime() {
@@ -268,6 +222,4 @@
       }
     }
   </script>
-</body>
-
-</html>
+{% endblock %}

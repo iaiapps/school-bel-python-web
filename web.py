@@ -58,6 +58,15 @@ def format_duration(seconds):
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# ───── ERROR HANDLERS ─────
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("error.html", code=404, message="Halaman tidak ditemukan."), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    return render_template("error.html", code=500, message="Terjadi kesalahan pada server."), 500
+
 # Context processor to make app_name available in all templates
 @app.context_processor
 def inject_app_name():
@@ -134,7 +143,9 @@ def login():
                 login_user(user, remember=True)
                 flash(f"Selamat datang, {username}!", "success")
                 next_page = request.args.get('next')
-                return redirect(next_page) if next_page else redirect(url_for("index"))
+                if next_page and next_page.startswith('/') and not next_page.startswith('//'):
+                    return redirect(next_page)
+                return redirect(url_for("index"))
             else:
                 flash("Akun Anda tidak aktif.", "error")
         else:
@@ -202,14 +213,17 @@ def api_next_bell():
     hari_ini = HARI_MAP.get(today_eng, today_eng)
     now_time = datetime.datetime.now().strftime("%H:%M")
 
+    active_cat = get_active_category()
+    active_category = active_cat[1] if active_cat else 'normal'
+
     with _connect() as conn:
         cur = conn.cursor()
         cur.execute("""
             SELECT time, activity, sound_file
             FROM schedules
-            WHERE day_of_week = ?
+            WHERE day_of_week = ? AND category = ?
             ORDER BY time
-        """, (hari_ini,))
+        """, (hari_ini, active_category))
         jadwal_hari_ini = cur.fetchall()
 
     next_bell = None
@@ -262,67 +276,6 @@ def api_stop_audio():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
     
-# ───── UPLOAD SOUND ─────
-@app.route("/upload", methods=["GET", "POST"])
-@login_required
-def upload():
-    if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        file = request.files.get("sound_file")
-
-        if not name:
-            flash("Nama sound wajib diisi.", "danger")
-            return redirect(url_for("upload"))
-
-        if file and file.filename:
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
-            file.save(filepath)
-
-            with _connect() as conn:
-                cur = conn.cursor()
-                cur.execute("INSERT INTO sounds (name, file_name) VALUES (?, ?)", (name, filename))
-                conn.commit()
-
-            flash("File berhasil diupload", "success")
-        else:
-            flash("File belum dipilih.", "danger")
-
-        return redirect(url_for("upload"))
-
-    with _connect() as conn:
-        cur = conn.cursor()
-        cur.execute("SELECT id, name, file_name FROM sounds ORDER BY id DESC")
-        sounds = cur.fetchall()
-
-    return render_template("upload.html", sounds=sounds)
-
-# ───── HAPUS SOUND + FILE SOUND ─────
-@app.route("/delete_sound/<int:sound_id>", methods=["POST"])
-@login_required
-def delete_sound(sound_id):
-    with _connect() as conn:
-        cur = conn.cursor()
-        cur.execute("SELECT file_name FROM sounds WHERE id = ?", (sound_id,))
-        row = cur.fetchone()
-        if not row:
-            flash("Data sound tidak ditemukan.", "danger")
-            return redirect(url_for("upload"))
-
-        filename = row[0]
-        filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
-        if os.path.exists(filepath):
-            try:
-                os.remove(filepath)
-            except Exception as e:
-                flash(f"Gagal menghapus file fisik: {e}", "warning")
-
-        cur.execute("DELETE FROM sounds WHERE id = ?", (sound_id,))
-        conn.commit()
-
-    flash("Sound berhasil dihapus.", "success")
-    return redirect(url_for("upload"))
-
 # ───── UNDUH SOUND ─────
 @app.route("/download/sound/<int:sound_id>")
 @login_required
@@ -334,20 +287,24 @@ def download_sound(sound_id):
         
         if not row:
             flash("Sound tidak ditemukan.", "danger")
-            return redirect(url_for("upload"))
+            return redirect(url_for("sounds_page"))
         
         filename = row[0]
     
-    safe_filename = secure_filename(filename)
-    filepath = os.path.join(Config.UPLOAD_FOLDER, safe_filename)
+    base_dir = os.path.realpath(Config.UPLOAD_FOLDER)
+    filepath = os.path.realpath(os.path.join(base_dir, filename))
+    
+    if not filepath.startswith(base_dir + os.sep):
+        flash("Path file sound tidak valid.", "danger")
+        return redirect(url_for("sounds_page"))
     
     if not os.path.exists(filepath):
         flash("File sound tidak ditemukan di server.", "danger")
-        return redirect(url_for("upload"))
+        return redirect(url_for("sounds_page"))
     
     return send_from_directory(
         Config.UPLOAD_FOLDER,
-        safe_filename,
+        filename,
         as_attachment=True,
         download_name=filename
     )
@@ -371,6 +328,18 @@ def schedule():
         schedules = cur.fetchall()
 
     return render_template("schedule.html", schedules=schedules, categories=categories, active_category=active_category, hari_ini=hari_ini)
+
+def get_sounds_with_duration():
+    with _connect() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT file_name FROM sounds ORDER BY CASE WHEN file_name LIKE '%/%' THEN 0 ELSE 1 END, file_name ASC")
+        sounds_raw = cur.fetchall()
+    
+    sounds_with_duration = []
+    for s in sounds_raw:
+        duration = get_audio_duration(s[0])
+        sounds_with_duration.append((s[0], format_duration(duration)))
+    return sounds_with_duration
 
 # ───── EDIT JADWAL ─────
 @app.route("/edit_schedule/<int:schedule_id>", methods=["GET", "POST"])
@@ -398,6 +367,9 @@ def edit_schedule(schedule_id):
                 WHERE id=?
             """, (day, time_val, activity, sound_file, category, schedule_id))
             conn.commit()
+            if cur.rowcount == 0:
+                flash("Jadwal tidak ditemukan.", "danger")
+                return redirect(url_for("schedule"))
             flash("Jadwal berhasil diperbarui.", "success")
             return redirect(url_for("schedule"))
 
@@ -405,18 +377,13 @@ def edit_schedule(schedule_id):
         cur.execute("SELECT id, day_of_week, time, activity, sound_file, category FROM schedules WHERE id=?", (schedule_id,))
         schedule_data = cur.fetchone()
 
-        cur.execute("SELECT file_name FROM sounds ORDER BY CASE WHEN file_name LIKE '%/%' THEN 0 ELSE 1 END, file_name ASC")
-        sounds_raw = cur.fetchall()
-        
-        # Add duration to each sound
-        sounds_with_duration = []
-        for s in sounds_raw:
-            duration = get_audio_duration(s[0])
-            sounds_with_duration.append((s[0], format_duration(duration)))
+        if schedule_data is None:
+            flash("Jadwal tidak ditemukan.", "danger")
+            return redirect(url_for("schedule"))
     
     playlists = get_all_playlists()
 
-    return render_template("edit_schedule.html", schedule=schedule_data, sounds=sounds_with_duration, categories=categories, playlists=playlists)
+    return render_template("edit_schedule.html", schedule=schedule_data, sounds=get_sounds_with_duration(), categories=categories, playlists=playlists)
 
 # ───── TAMBAH JADWAL ─────
 @app.route("/schedule/add", methods=["GET", "POST"])
@@ -464,20 +431,9 @@ def add_schedule():
         
         return redirect(url_for("schedule"))
 
-    with _connect() as conn:
-        cur = conn.cursor()
-        cur.execute("SELECT file_name FROM sounds ORDER BY CASE WHEN file_name LIKE '%/%' THEN 0 ELSE 1 END, file_name ASC")
-        sounds_raw = cur.fetchall()
-    
-    # Add duration to each sound
-    sounds_with_duration = []
-    for s in sounds_raw:
-        duration = get_audio_duration(s[0])
-        sounds_with_duration.append((s[0], format_duration(duration)))
-    
     playlists = get_all_playlists()
 
-    return render_template("add_schedule.html", sounds=sounds_with_duration, categories=categories, playlists=playlists)
+    return render_template("add_schedule.html", sounds=get_sounds_with_duration(), categories=categories, playlists=playlists)
 
 # ───── DELETE JADWAL ─────
 @app.route("/delete_schedule/<int:schedule_id>", methods=["POST"])
@@ -611,8 +567,13 @@ def settings_general():
 @app.route("/settings/network", methods=["POST"])
 @login_required
 def settings_network():
+    port_raw = request.form.get('port', '5000').strip()
+    if not port_raw.isdigit() or not (1 <= int(port_raw) <= 65535):
+        flash("Port harus berupa angka antara 1 - 65535.", "danger")
+        return redirect(url_for("settings") + "#network")
+
     updates = {
-        'port': int(request.form.get('port', 5000)),
+        'port': int(port_raw),
         'static_ip_enabled': 'static_ip_enabled' in request.form,
         'static_ip': request.form.get('static_ip', ''),
         'static_gateway': request.form.get('static_gateway', ''),
@@ -630,9 +591,14 @@ def settings_network():
 @app.route("/settings/audio", methods=["POST"])
 @login_required
 def settings_audio():
+    volume_raw = request.form.get('volume', '80').strip()
+    if not volume_raw.isdigit() or not (0 <= int(volume_raw) <= 100):
+        flash("Volume harus berupa angka antara 0 - 100.", "danger")
+        return redirect(url_for("settings") + "#audio")
+
     updates = {
         'audio_output': request.form.get('audio_output', 'auto'),
-        'volume': int(request.form.get('volume', 80))
+        'volume': int(volume_raw)
     }
     
     if update_settings(updates):
@@ -672,7 +638,11 @@ def settings_password():
     current_password = request.form.get('current_password')
     new_password = request.form.get('new_password')
     confirm_password = request.form.get('confirm_password')
-    
+
+    if not current_password:
+        flash("Password saat ini wajib diisi.", "danger")
+        return redirect(url_for("settings") + "#security")
+
     # Verify current password
     from database import _connect
     with _connect() as conn:

@@ -93,6 +93,15 @@ Verifikasi: password ganti OK + rollback, evil.com/`//evil.com` → `/`, interna
 - 32/32 smoke test lulus (render 7 route, CSRF, open redirect 7 varian, C5, I6, I2, C1, I7, jinja 13 template).
 - git status: 8 file berubah + D bel_sekolah.db (staged). BELUM di-commit.
 
+## 2026-08-06 — Fix CSRF 403 di belakang Cloudflare (bel.sditharum.id)
+
+- Gejala: semua POST browser via `https://bel.sditharum.id` (Cloudflare, SSL Flexible) → `{"message":"Permintaan tidak diizinkan (CSRF).","success":false}`.
+- Akar masalah: check CSRF bandingkan scheme+netloc; browser kirim Origin `https://` sedangkan Flask asal terima `http://` (CF→origin HTTP) → scheme beda = 403 di setiap POST (login ikut kena).
+- Perbaikan (web.py):
+  - `ProxyFix(x_for=1, x_proto=1, x_host=1)` di `start_app()` — request.url mengikuti `X-Forwarded-Proto/Host` dari Cloudflare.
+  - CSRF kini bandingkan **netloc (host:port) saja** — scheme bukan sinyal CSRF; serangan lintas-situs tetap terblokir (netloc evil.com ≠ host aplikasi).
+- Verifikasi 7 skenario: CF https Origin cocok → 200; evil.com Origin/Referer → 403; tanpa header (curl) → 200; IP langsung :5000 → 200; request.url via ProxyFix = https://bel.sditharum.id. py_compile OK.
+
 ## 2026-08-06 — Round 2: XSS Fixes + Mobile-First + A11y (hasil audit kedua)
 
 ### Critical (XSS — inline JS / innerHTML)

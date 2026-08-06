@@ -5,6 +5,7 @@ import datetime
 import shutil
 import subprocess
 from werkzeug.utils import secure_filename
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from database import init_db, get_history, clear_history, get_user_by_username, get_user_by_id
@@ -98,7 +99,11 @@ def csrf_protect():
     try:
         s = urlparse(source)
         h = urlparse(request.url)
-        if s.scheme != h.scheme or s.netloc != h.netloc:
+        # Bandingkan netloc (host:port) saja. Scheme tidak dipakai sebagai sinyal:
+        # di belakang Cloudflare/reverse proxy browser memakai https sedangkan
+        # server asal menerima http (X-Forwarded-Proto via ProxyFix). Serangan
+        # CSRF lintas-situs tetap terblokir karena netloc-nya beda.
+        if s.netloc != h.netloc:
             return jsonify({'success': False, 'message': 'Permintaan tidak diizinkan (CSRF).'}), 403
     except Exception:
         return jsonify({'success': False, 'message': 'Permintaan tidak diizinkan (CSRF).'}), 403
@@ -1212,5 +1217,7 @@ def api_get_sounds_structure():
     return jsonify(structure)
 
 def start_app():
+    # Trust forwarded headers from Cloudflare / reverse proxy (https, host)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
     # init db jika dipanggil dari run.py pertama kali
     init_db()

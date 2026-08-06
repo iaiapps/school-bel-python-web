@@ -93,6 +93,14 @@ Verifikasi: password ganti OK + rollback, evil.com/`//evil.com` → `/`, interna
 - 32/32 smoke test lulus (render 7 route, CSRF, open redirect 7 varian, C5, I6, I2, C1, I7, jinja 13 template).
 - git status: 8 file berubah + D bel_sekolah.db (staged). BELUM di-commit.
 
+## 2026-08-06 — Fix jam dashboard mati (SyntaxError JS duplikat confirm)
+
+- Gejala (dilaporkan user di Pi): jam `--:--:--` tidak pernah berjalan, status "Memeriksa…" tetap, tombol on/off & kategori tidak berfungsi.
+- Akar masalah: regresi edit round-2 (K1) — `if (confirm(...)) {` **terduplikasi** di index.html (baris 209-210) → SyntaxError → seluruh blok script gagal parse → semua fungsi (updateTime, toggleCore, fetchNextBell, switchCategory) tidak terdefinisi. Smoke test tidak menangkap karena hanya cek marker HTML, bukan parse JS.
+- Perbaikan: hapus baris duplikat. Tambahan verifikasi: extract + `node --check` semua script inline di **13 template** → semua valid (cegah kasus serupa).
+- Verifikasi: node JS OK, GET / → 200, updateTime + setInterval hadir, confirm tepat 1x.
+- Audit lanjutan (cek error lain): node --check semua 13 template OK; cross-check getElementById vs id HTML (semua ada, 1 false positive macro `_schedule_form.html`); querySelector class semua ada; semua fetch() cocok dengan route Flask (termasuk pola dinamis `<int:>`); field API yang dibaca JS cocok dengan respons (`items`/`total_duration_formatted`/`duration_formatted`/`status`/`time`/`activity`/`logs`); suite fungsional DB terisi 28/28 (render 9 halaman, next-bell, scan/sync, playlist CRUD, validasi POST tanpa 500, logs graceful).
+
 ## 2026-08-06 — Fix CSRF 403 di belakang Cloudflare (bel.sditharum.id)
 
 - Gejala: semua POST browser via `https://bel.sditharum.id` (Cloudflare, SSL Flexible) → `{"message":"Permintaan tidak diizinkan (CSRF).","success":false}`.

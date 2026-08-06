@@ -207,7 +207,6 @@
 
     async function switchCategory(categoryName) {
       if (confirm('Yakin ingin ke kategori "' + categoryName + '"?')) {
-      if (confirm('Yakin ingin ke kategori "' + categoryName + '"?')) {
         try {
           let res = await fetch("/api/set-active-category", {
             method: "POST",

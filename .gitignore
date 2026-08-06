@@ -12,6 +12,7 @@ env/
 # Database & Settings (Generated)
 database.db
 database.db-*
+bel_sekolah.db
 app_settings.json
 
 # Logs

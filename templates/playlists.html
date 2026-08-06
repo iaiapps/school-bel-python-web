@@ -59,17 +59,17 @@
                 class="mb-3"
                 style="max-height: 200px; overflow-y: auto"
               >
-                <small class="text-muted">Memuat...</small>
+                <small class="text-muted">Memuat…</small>
               </div>
             </div>
             <div class="card-footer">
               <div class="btn-group w-100">
-<button class="btn btn-sm btn-outline-primary" onclick="viewPlaylist(${playlist[0]})" aria-label="Kelola playlist ${playlist[1]}" title="Kelola">
-                    <i class="fas fa-eye" aria-hidden="true"></i>
-                  </button>
-<button class="btn btn-sm btn-outline-danger" onclick="deletePlaylist(${playlist[0]}, '${playlist[1]}')" aria-label="Hapus playlist ${playlist[1]}" title="Hapus">
-                    <i class="fas fa-trash" aria-hidden="true"></i>
-                  </button>
+                <button class="btn btn-sm btn-outline-primary" data-action="view" data-id="{{ playlist[0] }}" aria-label="Kelola playlist {{ playlist[1] }}" title="Kelola">
+                  <i class="fas fa-eye" aria-hidden="true"></i> Kelola
+                </button>
+                <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="{{ playlist[0] }}" data-name="{{ playlist[1] }}" aria-label="Hapus playlist {{ playlist[1] }}" title="Hapus">
+                  <i class="fas fa-trash" aria-hidden="true"></i> Hapus
+                </button>
               </div>
             </div>
           </div>
@@ -140,7 +140,7 @@
             <button
               class="btn btn-success btn-sm"
               type="button"
-              onclick="addMultipleToPlaylist()"
+              id="addMultipleBtn"
             >
               <i class="fas fa-plus" aria-hidden="true"></i> Tambah yang Dipilih
             </button>
@@ -157,11 +157,48 @@
     <script>
       let currentPlaylistId = null;
 
+      const escapeHtml = (str) => {
+        if (typeof str !== 'string') return str;
+        return str.replace(/[&<>"']/g, (c) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[c]);
+      };
+
       // Load on page ready
       document.addEventListener("DOMContentLoaded", () => {
         // Auto-load all playlist items preview
         loadAllPlaylistPreviews();
+        setupPlaylistCardActions();
+
+        const addMultipleBtn = document.getElementById("addMultipleBtn");
+        if (addMultipleBtn) {
+          addMultipleBtn.addEventListener("click", addMultipleToPlaylist);
+        }
+
+        // Delegasi untuk tombol hapus item di modal detail (list di-render dinamis)
+        const itemsUl = document.getElementById("playlistItems");
+        if (itemsUl && !itemsUl.dataset.removeDelegateBound) {
+          itemsUl.dataset.removeDelegateBound = "1";
+          itemsUl.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-remove-item]");
+            if (btn) removeItem(Number(btn.dataset.removeItem));
+          });
+        }
       });
+
+      // Event delegation untuk tombol Kelola/Hapus di kartu playlist
+      function setupPlaylistCardActions() {
+        document.querySelectorAll('[data-action="view"]').forEach((btn) => {
+          btn.addEventListener("click", () => viewPlaylist(Number(btn.dataset.id)));
+        });
+        document.querySelectorAll('[data-action="delete"]').forEach((btn) => {
+          btn.addEventListener("click", () => deletePlaylist(Number(btn.dataset.id), btn.dataset.name));
+        });
+      }
 
       // Load all playlist previews on page load
       async function loadAllPlaylistPreviews() {
@@ -184,7 +221,7 @@
                       '<div class="text-truncate small"><strong>' +
                       (i + 1) +
                       ".</strong> " +
-                      item.name +
+                      escapeHtml(item.name) +
                       "</div>",
                   )
                   .join("");
@@ -311,9 +348,9 @@
               '<option value="' +
               s.id +
               '">' +
-              s.name +
+              escapeHtml(s.name) +
               " (" +
-              s.file_name +
+              escapeHtml(s.file_name) +
               ")</option>";
           });
         } catch (err) {
@@ -340,13 +377,13 @@
               "<div><strong>" +
               (i + 1) +
               ".</strong> " +
-              item.name +
+              escapeHtml(item.name) +
               " <small>(" +
-              (item.duration_formatted || '?') +
+              escapeHtml(item.duration_formatted || '?') +
               ")</small></div>" +
-              '<button class="btn btn-sm btn-outline-danger" onclick="removeItem(' +
+              '<button type="button" class="btn btn-sm btn-outline-danger" data-remove-item="' +
               item.id +
-              ')"><i class="fas fa-trash"></i></button></li>';
+              '" aria-label="Hapus item"><i class="fas fa-trash" aria-hidden="true"></i></button></li>';
           });
 
           // Show items preview and total duration
@@ -358,12 +395,12 @@
                   '<div class="text-truncate small"><strong>' +
                   (i + 1) +
                   ".</strong> " +
-                  item.name +
+                  escapeHtml(item.name) +
                   "</div>",
               )
               .join("") || '<small class="text-muted">Belum ada file</small>';
             if (data.total_duration_formatted) {
-              html += '<small class="text-muted d-block mt-2">Total: ' + data.total_duration_formatted + '</small>';
+              html += '<small class="text-muted d-block mt-2">Total: ' + escapeHtml(data.total_duration_formatted) + '</small>';
             }
             previewDiv.innerHTML = html;
           }

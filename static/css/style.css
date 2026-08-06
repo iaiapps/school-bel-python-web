@@ -135,7 +135,7 @@ body {
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -328,7 +328,7 @@ body {
   border-radius: 20px;
   font-weight: 600;
   font-size: 13px;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
   border: 2px solid transparent;
 }
 
@@ -553,22 +553,11 @@ h1, h2, h3, h4, h5, h6,
 }
 
 /* Top navigation bar */
-.bg-white.p-3 {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid #f0f0f0;
-}
+/* (navbar & .bg-white.p-3 dihapus — tidak ada komponen tersebut di template mana pun) */
 
-.navbar {
-  background-color: #ff5722;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  padding: 12px 15px;
-}
-
-.navbar-brand,
-.nav-link {
-  color: white !important;
-  font-size: 15px;
+/* Angka tabel jam: hindari loncatan lebar kolom */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ====================================

@@ -160,7 +160,7 @@
               <tr>
                 <td colspan="5" class="text-center text-muted py-4">
                   <i class="fas fa-spinner fa-spin fa-2x"></i>
-                  <p class="mt-2">Memuat sounds...</p>
+                  <p class="mt-2">Memuat sounds…</p>
                 </td>
               </tr>
             </tbody>
@@ -405,7 +405,7 @@
         folders
           .filter((f) => f !== "root")
           .forEach((f) => {
-            select.innerHTML += `<option value="${f}">${f}/</option>`;
+            select.innerHTML += `<option value="${escapeHtml(f)}">${escapeHtml(f)}/</option>`;
           });
 
         document.getElementById("foldersCount").textContent =
@@ -469,7 +469,7 @@
         newList.innerHTML =
           syncPreview.new.length > 0
             ? syncPreview.new
-              .map((f) => `<li class="list-group-item">📄 ${f}</li>`)
+              .map((f) => `<li class="list-group-item">📄 ${escapeHtml(f)}</li>`)
               .join("")
             : '<li class="text-muted">Tidak ada</li>';
 
@@ -477,7 +477,7 @@
         missingList.innerHTML =
           syncPreview.missing.length > 0
             ? syncPreview.missing
-              .map((f) => `<li class="list-group-item">⚠️ ${f}</li>`)
+              .map((f) => `<li class="list-group-item">⚠️ ${escapeHtml(f)}</li>`)
               .join("")
             : '<li class="text-muted">Tidak ada</li>';
 
@@ -535,7 +535,7 @@
       let html = '<div class="small"><strong>File dipilih:</strong><br>';
       Array.from(input.files).forEach((file, i) => {
         const size = (file.size / 1024 / 1024).toFixed(2);
-        html += `${i + 1}. ${file.name} (${size} MB)<br>`;
+        html += `${i + 1}. ${escapeHtml(file.name)} (${size} MB)<br>`;
       });
       html += "</div>";
       list.innerHTML = html;

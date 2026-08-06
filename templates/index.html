@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Dashboard Bel Otomatis{% endblock %}
-{% block header_title %}Bell Application{% endblock %}
+{% block header_title %}Aplikasi Bel Sekolah{% endblock %}
 
 {% block content %}
     <!-- Status Card -->
@@ -9,17 +9,17 @@
       <hr />
       <div class="status-row">
         <div class="col-time">
-          <p class="mb-1 fw-bold">Waktu System</p>
+          <p class="mb-1 fw-bold">Waktu Sistem</p>
           <div class="current-time" id="currentTime">--:--:--</div>
           <div class="current-date" id="currentDate">--</div>
         </div>
         <div class="col-status">
           <p class="mb-2 fw-bold">
-            Status System: <strong id="coreStatus">Memeriksa...</strong>
+            Status Sistem: <strong id="coreStatus" aria-live="polite">Memeriksa…</strong>
           </p>
           <div class="mb-2">
             <p class="mb-0">
-              Bel berikutnya: <strong id="nextBell">Memuat...</strong>
+              Bel berikutnya: <strong id="nextBell" aria-live="polite">Memuat…</strong>
             </p>
           </div>
           <button class="quick-action-btn mt-2" onclick="toggleCore()" id="toggleBtn">
@@ -34,7 +34,7 @@
       <!-- Manage Sounds -->
       <a href="/sounds" class="text-decoration-none">
         <div class="menu-card">
-          <div class="menu-icon"><i class="fas fa-folder-open"></i></div>
+          <div class="menu-icon"><i class="fas fa-folder-open" aria-hidden="true"></i></div>
           <div class="menu-text">
             <h5 class="menu-title">Kelola Sounds</h5>
             <p class="menu-description">Upload, kelola folder & sync</p>
@@ -45,7 +45,7 @@
       <!-- Playlist -->
       <a href="/playlists" class="text-decoration-none">
         <div class="menu-card">
-          <div class="menu-icon"><i class="fas fa-list-ul"></i></div>
+          <div class="menu-icon"><i class="fas fa-list-ul" aria-hidden="true"></i></div>
           <div class="menu-text">
             <h5 class="menu-title">Playlist</h5>
             <p class="menu-description">Murottal & urutan</p>
@@ -56,7 +56,7 @@
       <!-- Jadwal Harian -->
       <a href="/schedule" class="text-decoration-none">
         <div class="menu-card">
-          <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
+          <div class="menu-icon"><i class="fas fa-calendar-alt" aria-hidden="true"></i></div>
           <div class="menu-text">
             <h5 class="menu-title">Jadwal Harian</h5>
             <p class="menu-description">Atur jadwal otomatis</p>
@@ -67,7 +67,7 @@
       <!-- Riwayat -->
       <a href="/history" class="text-decoration-none">
         <div class="menu-card">
-          <div class="menu-icon"><i class="fas fa-history"></i></div>
+          <div class="menu-icon"><i class="fas fa-history" aria-hidden="true"></i></div>
           <div class="menu-text">
             <h5 class="menu-title">Riwayat</h5>
             <p class="menu-description">Log aktivitas</p>
@@ -89,7 +89,7 @@
               {% for cat in categories %}
               <button type="button" class="btn btn-sm category-btn {% if cat[1] == active_category %}active{% endif %}"
                 style="background-color: {{ cat[3] }}; border-color: {{ cat[3] }}; color: white;"
-                onclick="switchCategory('{{ cat[1] }}')" id="cat-btn-{{ cat[1] }}">
+                data-category="{{ cat[1] }}" id="cat-btn-{{ loop.index }}">
                 {{ cat[1]|upper }}
               </button>
               {% endfor %}
@@ -201,7 +201,12 @@
     setInterval(fetchNextBell, 30000);
 
     // Category switching
+    document.querySelectorAll(".category-btn").forEach((btn) => {
+      btn.addEventListener("click", () => switchCategory(btn.dataset.category));
+    });
+
     async function switchCategory(categoryName) {
+      if (confirm('Yakin ingin ke kategori "' + categoryName + '"?')) {
       if (confirm('Yakin ingin ke kategori "' + categoryName + '"?')) {
         try {
           let res = await fetch("/api/set-active-category", {

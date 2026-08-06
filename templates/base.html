@@ -14,6 +14,7 @@
   {% block styles %}{% endblock %}
 </head>
 <body>
+  <a class="visually-hidden-focusable" href="#mainContent">Lewati ke konten</a>
   <div class="container main-container">
     {% block header %}
     <div class="app-header">
@@ -44,7 +45,9 @@
     {% endwith %}
     {% endblock %}
 
-    {% block content %}{% endblock %}
+    <main id="mainContent">
+      {% block content %}{% endblock %}
+    </main>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

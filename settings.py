@@ -60,7 +60,7 @@ class SettingsManager:
             elif key in ['auto_start', 'static_ip_enabled', 'notification_enabled']:
                 return value == '1' or value == 1
             return value
-        except:
+        except Exception:
             return DEFAULT_SETTINGS.get(key, default)
     
     def set(self, key, value):
@@ -165,7 +165,7 @@ class SettingsManager:
             s.connect(("8.8.8.8", 80))
             info['ip_address'] = s.getsockname()[0]
             s.close()
-        except:
+        except Exception:
             pass
         
         # Check if Raspberry Pi

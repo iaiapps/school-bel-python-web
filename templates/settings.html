@@ -19,7 +19,7 @@
       border-radius: 8px;
       padding: 12px 15px;
       text-align: left;
-      transition: all 0.2s;
+      transition: background-color 0.2s, color 0.2s;
       border: 2px solid transparent;
       background-color: #f8f9fa !important;
       font-weight: 500;
@@ -35,6 +35,30 @@
       background-color: #ffe0b2 !important;
       color: #212529 !important;
       border-color: #ff9800;
+    }
+
+    /* Mobile: sidebar jadi pill horizontal scroll (tidak menumpuk ke atas konten) */
+    @media (max-width: 767.98px) {
+      .sidebar-card {
+        position: static;
+        padding: 10px;
+      }
+
+      #v-pills-tab {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        padding-bottom: 4px;
+        scrollbar-width: thin;
+      }
+
+      #v-pills-tab .nav-link {
+        white-space: nowrap;
+        margin-bottom: 0;
+        padding: 10px 14px;
+      }
     }
 
     .settings-card {

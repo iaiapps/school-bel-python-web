@@ -70,8 +70,8 @@
                   <th scope="col" style="width: 5%">No</th>
                   <th scope="col" style="width: 12%">Jam</th>
                   <th scope="col" style="width: 25%">Aktivitas</th>
-                  <th scope="col" style="width: 20%">Sound</th>
-                  <th scope="col" style="width: 15%">Kategori</th>
+                  <th scope="col" style="width: 20%" class="d-none d-md-table-cell">Sound</th>
+                  <th scope="col" style="width: 15%" class="d-none d-md-table-cell">Kategori</th>
                   <th scope="col" style="width: 13%">Aksi</th>
                 </tr>
               </thead>
@@ -82,8 +82,8 @@
                   <td>{{ loop.index }}</td>
                   <td class="tabular-nums"><strong>{{ row[2] }}</strong></td>
                   <td>{{ row[3] }}</td>
-                  <td><code>{{ row[4] }}</code></td>
-                  <td>
+                  <td class="d-none d-md-table-cell"><code>{{ row[4] }}</code></td>
+                  <td class="d-none d-md-table-cell">
                     <span class="badge"
                       style="background-color: {% for c in categories if c[1] == row[5] %}{{ c[3] }}{% endfor %}">{{
                       row[5]|upper }}</span>

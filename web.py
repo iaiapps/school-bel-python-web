@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 import os
 import sqlite3
 import datetime
+import shutil
+import subprocess
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -15,6 +17,7 @@ import core
 import threading
 from settings import settings_manager, get_all_settings, update_settings, get_setting
 from werkzeug.security import generate_password_hash
+from urllib.parse import urlparse
 
 MUTAGEN_AVAILABLE = False
 
@@ -73,9 +76,33 @@ def inject_app_name():
     try:
         from settings import get_setting
         app_name = get_setting('app_name', 'Bel Sekolah')
-    except:
+    except Exception:
         app_name = 'Bel Sekolah'
     return dict(app_name=app_name)
+
+# ───── CSRF PROTECTION (Origin/Referer check) ─────
+@app.before_request
+def csrf_protect():
+    """Cegah CSRF untuk method berbahaya dengan memvalidasi Origin/Referer.
+    Request non-browser (tanpa Origin & Referer) tetap diizinkan."""
+    if request.method not in ('POST', 'PUT', 'DELETE', 'PATCH'):
+        return None
+
+    origin = request.headers.get('Origin')
+    referer = request.headers.get('Referer')
+
+    if origin is None and referer is None:
+        return None  # non-browser client
+
+    source = origin or referer
+    try:
+        s = urlparse(source)
+        h = urlparse(request.url)
+        if s.scheme != h.scheme or s.netloc != h.netloc:
+            return jsonify({'success': False, 'message': 'Permintaan tidak diizinkan (CSRF).'}), 403
+    except Exception:
+        return jsonify({'success': False, 'message': 'Permintaan tidak diizinkan (CSRF).'}), 403
+    return None
 
 # Define SOUNDS_PATH
 SOUNDS_PATH = Config.UPLOAD_FOLDER
@@ -143,8 +170,11 @@ def login():
                 login_user(user, remember=True)
                 flash(f"Selamat datang, {username}!", "success")
                 next_page = request.args.get('next')
-                if next_page and next_page.startswith('/') and not next_page.startswith('//'):
-                    return redirect(next_page)
+                if next_page:
+                    parsed = urlparse(next_page)
+                    # hanya izinkan path relatif tanpa netloc/scheme (cegah open redirect)
+                    if parsed.scheme == '' and parsed.netloc == '' and parsed.path.startswith('/') and not parsed.path.startswith('//'):
+                        return redirect(next_page)
                 return redirect(url_for("index"))
             else:
                 flash("Akun Anda tidak aktif.", "error")
@@ -424,10 +454,7 @@ def add_schedule():
             
             conn.commit()
         
-        if inserted_count == 1:
-            flash(f"Jadwal berhasil ditambahkan untuk {inserted_count} hari.", "success")
-        else:
-            flash(f"Jadwal berhasil ditambahkan untuk {inserted_count} hari.", "success")
+        flash(f"Jadwal berhasil ditambahkan untuk {inserted_count} hari.", "success")
         
         return redirect(url_for("schedule"))
 
@@ -618,7 +645,6 @@ def settings_generate_qr():
     
     if success:
         # Copy ke static folder untuk diakses dari web
-        import shutil
         src = os.path.join(Config.BASE_DIR, 'access-qr.png')
         dst = os.path.join(Config.BASE_DIR, 'static', 'access-qr.png')
         if os.path.exists(src):
@@ -641,6 +667,10 @@ def settings_password():
 
     if not current_password:
         flash("Password saat ini wajib diisi.", "danger")
+        return redirect(url_for("settings") + "#security")
+
+    if not new_password or not confirm_password:
+        flash("Password baru dan konfirmasi wajib diisi.", "danger")
         return redirect(url_for("settings") + "#security")
 
     # Verify current password
@@ -677,14 +707,17 @@ def settings_password():
 @app.route("/settings/restart-service", methods=["POST"])
 @login_required
 def settings_restart_service():
-    import subprocess
     try:
         # Restart systemd service
-        subprocess.run(['sudo', 'systemctl', 'restart', 'bel-sekolah.service'], 
-                      check=True, capture_output=True, text=True)
+        # -n: sudo non-interaktif (gagal cepat daripada menunggu password)
+        # timeout: cegah request menggantung
+        subprocess.run(['sudo', '-n', 'systemctl', 'restart', 'bel-sekolah.service'],
+                      check=True, capture_output=True, text=True, timeout=15)
         flash("Service berhasil direstart. Halaman akan refresh dalam 5 detik.", "success")
     except subprocess.CalledProcessError as e:
-        flash(f"Gagal restart service: {e.stderr}", "danger")
+        flash(f"Gagal restart service: {e.stderr.strip() or 'sudo gagal (butuh izin non-interaktif?)'}", "danger")
+    except subprocess.TimeoutExpired:
+        flash("Restart service timeout (15 detik).", "danger")
     except Exception as e:
         flash(f"Error: {str(e)}", "danger")
     
@@ -697,13 +730,20 @@ def manage_logs():
     """Logs viewer page"""
     return render_template("logs.html")
 
+def _parse_lines_param():
+    """Parse & clamp ?lines= ke rentang aman (1..5000) untuk journalctl."""
+    try:
+        lines = int(request.args.get('lines', 100))
+    except (TypeError, ValueError):
+        lines = 100
+    return min(max(lines, 1), 5000)
+
 @app.route("/api/logs", methods=["GET"])
 @login_required
 def api_get_logs():
     """Get application logs from journalctl"""
-    import subprocess
     
-    lines = request.args.get('lines', 100)
+    lines = _parse_lines_param()
     
     try:
         # Get logs from systemd journal
@@ -722,12 +762,12 @@ def api_get_logs():
         else:
             return jsonify({
                 'success': False,
-                'message': 'Failed to get logs'
+                'message': 'Gagal mengambil log'
             })
     except subprocess.TimeoutExpired:
         return jsonify({
             'success': False,
-            'message': 'Timeout getting logs'
+            'message': 'Waktu habis mengambil log'
         })
     except Exception as e:
         return jsonify({
@@ -739,10 +779,9 @@ def api_get_logs():
 @login_required
 def api_download_logs():
     """Download logs as file"""
-    import subprocess
     from io import BytesIO
     
-    lines = request.args.get('lines', 100)
+    lines = _parse_lines_param()
     
     try:
         result = subprocess.run(
@@ -763,7 +802,7 @@ def api_download_logs():
                 download_name=f'bel-sekolah-logs.txt'
             )
         else:
-            return jsonify({'success': False, 'message': 'Failed to get logs'})
+            return jsonify({'success': False, 'message': 'Gagal mengambil log'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
@@ -772,7 +811,6 @@ def api_download_logs():
 @login_required
 def api_test_audio():
     try:
-        import subprocess
         # Create a simple beep or use existing sound
         sound_file = os.path.join(Config.UPLOAD_FOLDER, 'bell.mp3')
         if not os.path.exists(sound_file):
@@ -791,9 +829,9 @@ def api_test_audio():
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )
-            return jsonify({"success": True, "message": "Audio test playing"})
+            return jsonify({"success": True, "message": "Audio uji sedang diputar"})
         else:
-            return jsonify({"success": False, "message": "No sound file available for test"})
+            return jsonify({"success": False, "message": "Tidak ada file sound untuk uji coba"})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
@@ -848,7 +886,7 @@ def api_set_active_category():
     core.stop_scheduler()
     threading.Thread(target=core.start_scheduler, daemon=True).start()
     
-    return jsonify({'success': True, 'message': f'Kategori changed to {category_name}'})
+    return jsonify({'success': True, 'message': f'Kategori diubah ke {category_name}'})
 
 @app.route("/api/add-category", methods=["POST"])
 @login_required
@@ -1015,7 +1053,6 @@ from sounds_manager import (
     create_folder, get_folders
 )
 from werkzeug.utils import secure_filename
-import shutil
 
 @app.route("/sounds")
 @login_required
@@ -1061,14 +1098,14 @@ def api_create_folder():
     name = data.get('name', '').strip()
     
     if not name:
-        return jsonify({'success': False, 'message': 'Folder name required'})
+        return jsonify({'success': False, 'message': 'Nama folder wajib diisi'})
     
     success, path = create_folder(name)
     
     if success:
         return jsonify({'success': True, 'path': path})
     else:
-        return jsonify({'success': False, 'message': 'Folder already exists'})
+        return jsonify({'success': False, 'message': 'Folder sudah ada'})
 
 @app.route("/api/sounds/upload", methods=["POST"])
 @login_required
@@ -1078,32 +1115,37 @@ def api_upload_sounds():
     files = request.files.getlist('files')
     
     if not files:
-        return jsonify({'success': False, 'message': 'No files selected'})
+        return jsonify({'success': False, 'message': 'Tidak ada file yang dipilih'})
     
     if len(files) > 50:
-        return jsonify({'success': False, 'message': 'Maximum 50 files at once'})
+        return jsonify({'success': False, 'message': 'Maksimal 50 file sekaligus'})
     
     uploaded = 0
     errors = []
     
-    # Determine target folder
-    target_folder = SOUNDS_PATH
-    if folder != 'root':
-        target_folder = os.path.join(SOUNDS_PATH, secure_filename(folder))
+    # Determine target folder (secure_filename untuk cegah path traversal)
+    secure_folder = secure_filename(folder) if folder != 'root' else ''
+    if secure_folder:
+        target_folder = os.path.join(SOUNDS_PATH, secure_folder)
         if not os.path.exists(target_folder):
             os.makedirs(target_folder)
-    
+    else:
+        target_folder = SOUNDS_PATH
+
     for file in files:
         try:
             if file and file.filename:
                 filename = secure_filename(file.filename)
                 if filename.lower().endswith(('.mp3', '.wav')):
+                    if file.content_length and file.content_length > 10 * 1024 * 1024:
+                        errors.append(f"{file.filename}: melebihi 10MB")
+                        continue
                     filepath = os.path.join(target_folder, filename)
                     file.save(filepath)
                     
-                    # Add to database
+                    # Add to database — pakai secure_folder, bukan input mentah
                     name = os.path.splitext(filename)[0]
-                    rel_path = os.path.join(folder, filename) if folder != 'root' else filename
+                    rel_path = os.path.join(secure_folder, filename) if secure_folder else filename
                     add_sound(name, rel_path)
                     uploaded += 1
         except Exception as e:
@@ -1130,7 +1172,7 @@ def api_bulk_delete_sounds():
     ids = data.get('ids', [])
     
     if not ids:
-        return jsonify({'success': False, 'message': 'No sounds selected'})
+        return jsonify({'success': False, 'message': 'Tidak ada sound yang dipilih'})
     
     count = delete_sounds_bulk(ids)
     
@@ -1146,19 +1188,19 @@ def api_play_sound(sound_id):
     sound = get_sound_by_id(sound_id)
     
     if not sound:
-        return jsonify({'success': False, 'message': 'Sound not found'})
+        return jsonify({'success': False, 'message': 'Sound tidak ditemukan'})
     
     file_name = sound[2]
     file_path = os.path.join(SOUNDS_PATH, file_name)
     
     if not os.path.exists(file_path):
-        return jsonify({'success': False, 'message': 'File not found'})
+        return jsonify({'success': False, 'message': 'File tidak ditemukan'})
     
     try:
         # Use core.play_sound which handles stop + play properly
         core.play_sound(file_name, activity="Manual Play (Testing)")
         
-        return jsonify({'success': True, 'message': 'Playing sound'})
+        return jsonify({'success': True, 'message': 'Memutar sound'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 

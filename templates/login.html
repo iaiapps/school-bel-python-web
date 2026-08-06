@@ -44,7 +44,7 @@
             color: #ff5722;
             margin-bottom: 15px;
         }
-        .login-header h3 {
+        .login-header h1 {
             color: #333;
             font-weight: bold;
             font-size: 1.5rem;
@@ -103,16 +103,6 @@
             border-radius: 10px;
             font-size: 14px;
         }
-        .default-credentials {
-            text-align: center;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-        }
-        .default-credentials small {
-            color: #888;
-            font-size: 12px;
-        }
         
         /* Mobile optimizations */
         @media (max-width: 480px) {
@@ -125,7 +115,7 @@
             .login-header i {
                 font-size: 40px;
             }
-            .login-header h3 {
+            .login-header h1 {
                 font-size: 1.3rem;
             }
             .form-control {
@@ -143,7 +133,7 @@
     <div class="login-card">
         <div class="login-header">
             <i class="fas fa-bell"></i>
-            <h3>Aplikasi Bel Sekolah</h3>
+            <h1>Aplikasi Bel Sekolah</h1>
             <p>{{ app_name }}</p>
         </div>
 
@@ -170,9 +160,8 @@
                         class="form-control"
                         id="username"
                         name="username"
-                        placeholder="Masukkan username"
+                        placeholder="Masukkan username…"
                         required
-                        autofocus
                         autocomplete="username"
                     />
                 </div>
@@ -189,7 +178,7 @@
                         class="form-control"
                         id="password"
                         name="password"
-                        placeholder="Masukkan password"
+                        placeholder="Masukkan password…"
                         required
                         autocomplete="current-password"
                     />
@@ -200,12 +189,6 @@
                 <i class="fas fa-sign-in-alt"></i> Login
             </button>
         </form>
-
-        <div class="default-credentials">
-            <small class="text-muted">
-                <i class="fas fa-info-circle"></i> Default: <strong>admin</strong> / <strong>admin123</strong>
-            </small>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

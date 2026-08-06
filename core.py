@@ -192,8 +192,8 @@ def _play_schedule_from_dict(schedule_info):
             print(f"[CORE] Jadwal baru: Playlist ID {playlist_id} | {activity}")
             _play_playlist(playlist_id, activity)
             log_history(current_day, jadwal_time, activity, sound_file)
-        except:
-            pass
+        except Exception as e:
+            print(f"[CORE] Gagal memutar playlist {sound_file}: {e}")
     else:
         print(f"[CORE] Jadwal baru: {sound_file} | {activity}")
         play_sound(sound_file, activity)
@@ -360,7 +360,7 @@ def start_scheduler():
         # Get active category from settings
         try:
             active_category = get_setting('active_category', 'normal')
-        except:
+        except Exception:
             active_category = 'normal'
 
         # Reset last_played jika category berubah
@@ -388,9 +388,14 @@ def start_scheduler():
             if jadwal_time == hhmm:
                 key = f"{current_day}-{jadwal_time}-{sound_file}-{active_category}"
                 
-                # Use lock for thread-safe access to last_played
+                # Check + add ATOMIK dalam satu lock, SEBELUM diputar.
+                # Ini mencegah race dengan check_and_play_new_schedule()
+                # (thread playlist) yang sama-sama melihat is_new=True,
+                # yang menyebabkan bel berbunyi dua kali.
                 with _last_played_lock:
                     is_new = key not in last_played
+                    if is_new:
+                        last_played.add(key)
                 
                 if is_new:
                     # hentikan audio lama kalau masih main
@@ -421,10 +426,6 @@ def start_scheduler():
                         # Single file
                         print(f"[CORE] Memutar bel: {sound_file} | {activity} ({current_day} {jadwal_time}) [Kategori: {active_category}]")
                         play_sound(sound_file, activity)
-                    
-                    # Use lock for thread-safe add to last_played
-                    with _last_played_lock:
-                        last_played.add(key)
 
         # bersihkan set sesekali
         if len(last_played) > 2000:

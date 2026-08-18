@@ -626,6 +626,7 @@
       // Hide all panels
       document.querySelectorAll("#folderTabContent .tab-pane").forEach((p) => {
         p.classList.remove("show", "active");
+        p.style.display = "none";
       });
 
       // Activate selected
@@ -642,6 +643,7 @@
       }
       if (panel) {
         panel.classList.add("show", "active");
+        panel.style.display = "block";
       }
 
       // Update selectAll checkbox state

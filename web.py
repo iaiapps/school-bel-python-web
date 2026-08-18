@@ -310,6 +310,44 @@ def api_stop_audio():
         return jsonify({"success": True, "message": "Audio dihentikan"})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
+
+# ───── PAUSE / RESUME AUDIO ─────
+@app.route("/api/pause-audio", methods=["POST"])
+@login_required
+def api_pause_audio():
+    try:
+        if core.pause_sound():
+            return jsonify({"success": True, "message": "Audio dijeda"})
+        else:
+            return jsonify({"success": False, "message": "Tidak ada audio yang diputar"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+@app.route("/api/resume-audio", methods=["POST"])
+@login_required
+def api_resume_audio():
+    try:
+        if core.resume_sound():
+            return jsonify({"success": True, "message": "Audio dilanjutkan"})
+        else:
+            return jsonify({"success": False, "message": "Audio tidak sedang dijeda"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+@app.route("/api/audio-status", methods=["GET"])
+@login_required
+def api_audio_status():
+    try:
+        playing = core._is_audio_playing()
+        paused = core.is_paused()
+        return jsonify({
+            "success": True,
+            "playing": playing,
+            "paused": paused,
+            "current_sound": core.current_playing
+        })
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
     
 # ───── UNDUH SOUND ─────
 @app.route("/download/sound/<int:sound_id>")

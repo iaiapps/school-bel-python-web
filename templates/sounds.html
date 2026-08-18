@@ -55,6 +55,30 @@
     .stats-card h5 {
       font-size: 1.3rem;
     }
+
+    .folder-tabs .nav-link {
+      font-size: 0.85rem;
+      padding: 6px 14px;
+      border-radius: 20px 20px 0 0;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .folder-tabs .nav-link.active {
+      background-color: #ff5722;
+      color: #fff;
+      border-color: #ff5722;
+    }
+
+    .folder-tabs .nav-link .badge {
+      font-size: 0.7rem;
+      vertical-align: middle;
+    }
+
+    .folder-tabs .nav-link.active .badge {
+      background-color: rgba(255,255,255,0.25) !important;
+      color: #fff !important;
+    }
   </style>
 {% endblock %}
 
@@ -64,6 +88,31 @@
       <a href="/" class="btn btn-sm btn-outline-secondary text-decoration-none">
         <i class="fas fa-arrow-left"></i> Kembali
       </a>
+    </div>
+
+    <!-- Audio Control Bar -->
+    <div class="card mb-3 d-none" id="audioControlBar">
+      <div class="card-body py-2">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center">
+            <span class="badge bg-primary me-2" id="audioStatusBadge">
+              <i class="fas fa-volume-up"></i> Diputar
+            </span>
+            <span id="audioNowPlaying" class="text-muted small"></span>
+          </div>
+          <div>
+            <button class="btn btn-sm btn-warning me-1" id="btnPause" onclick="pauseAudio()" title="Jeda">
+              <i class="fas fa-pause"></i> Jeda
+            </button>
+            <button class="btn btn-sm btn-success me-1 d-none" id="btnResume" onclick="resumeAudio()" title="Lanjutkan">
+              <i class="fas fa-play"></i> Lanjutkan
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="stopAudio()" title="Hentikan">
+              <i class="fas fa-stop"></i> Hentikan
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Actions Bar -->
@@ -139,32 +188,44 @@
       </div>
     </div>
 
-    <!-- List View -->
+    <!-- List View with Folder Tabs -->
     <div class="card">
-      <div class="card-header"><i class="fas fa-list" aria-hidden="true"></i> Semua Sounds</div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th width="50">
-                  <input type="checkbox" id="selectAll" aria-label="Pilih semua sound" onchange="toggleSelectAll()" />
-                </th>
-                <th>Nama</th>
-                <th>Path</th>
-                <th width="100">Durasi</th>
-                <th width="150">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="soundsTable">
-              <tr>
-                <td colspan="5" class="text-center text-muted py-4">
-                  <i class="fas fa-spinner fa-spin fa-2x"></i>
-                  <p class="mt-2">Memuat sounds…</p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="card-header p-0">
+        <ul class="nav nav-tabs folder-tabs" id="folderTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-all" data-folder="__all__" onclick="switchTab('__all__')" role="tab" aria-controls="panel-all" aria-selected="true">
+              <i class="fas fa-layer-group"></i> Semua <span class="badge bg-secondary" id="badge-all">0</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+      <div class="card-body p-0">
+        <div class="tab-content" id="folderTabContent">
+          <div class="tab-pane fade show active" id="panel-all" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th width="50">
+                      <input type="checkbox" id="selectAll" aria-label="Pilih semua sound" onchange="toggleSelectAll()" />
+                    </th>
+                    <th>Nama</th>
+                    <th>Path</th>
+                    <th width="100">Durasi</th>
+                    <th width="150">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="soundsTable">
+                  <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                      <i class="fas fa-spinner fa-spin fa-2x"></i>
+                      <p class="mt-2">Memuat sounds…</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -322,11 +383,26 @@
 {% block scripts %}
   <script>
     let currentSounds = [];
+    let _currentFolders = [];
     let syncPreview = null;
 
     // Load on page load
     document.addEventListener("DOMContentLoaded", async () => {
       setupDragDrop();
+
+      // Event delegation for folder select-all checkboxes
+      document.getElementById("folderTabContent").addEventListener("change", function(e) {
+        if (e.target.classList.contains("select-folder-checkbox")) {
+          const folder = e.target.dataset.folder;
+          const tbody = document.getElementById("soundsTable-" + folder);
+          if (tbody) {
+            tbody.querySelectorAll(".sound-checkbox").forEach((cb) => {
+              cb.checked = e.target.checked;
+            });
+          }
+        }
+      });
+
       await loadSounds();
       await loadFolders();
     });
@@ -346,48 +422,8 @@
       try {
         const res = await fetch("/api/sounds");
         currentSounds = await res.json();
-
-        const tbody = document.getElementById("soundsTable");
-        tbody.innerHTML = "";
-
-        if (currentSounds.length === 0) {
-          tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
-                            <i class="fas fa-music fa-2x mb-3"></i>
-                            <p class="mt-2">Belum ada sounds. Upload atau sinkronkan folder.</p>
-                        </td>
-                    </tr>
-                `;
-          document.getElementById("totalSounds").textContent = "0";
-          return;
-        }
-
-        currentSounds.forEach((sound) => {
-          const tr = document.createElement("tr");
-          tr.className = "sound-item";
-          tr.innerHTML = `
-            <td><input type="checkbox" class="sound-checkbox" value="${escapeHtml(sound.id)}"></td>
-            <td><strong>${escapeHtml(sound.name)}</strong></td>
-            <td><small class="text-muted">${escapeHtml(sound.file_name)}</small></td>
-            <td><small class="text-muted">${escapeHtml(sound.duration_formatted || '?')}</small></td>
-            <td>
-              <button class="btn btn-sm btn-outline-primary" onclick="playSound(${escapeHtml(sound.id)})" aria-label="Putar ${escapeHtml(sound.name)}" title="Putar">
-                <i class="fas fa-play" aria-hidden="true"></i>
-              </button>
-              <a href="/download/sound/${escapeHtml(sound.id)}" class="btn btn-sm btn-outline-success" title="Unduh" aria-label="Unduh ${escapeHtml(sound.name)}">
-                <i class="fas fa-download" aria-hidden="true"></i>
-              </a>
-              <button class="btn btn-sm btn-outline-danger" onclick="deleteSound(${escapeHtml(sound.id)})" title="Hapus" aria-label="Hapus ${escapeHtml(sound.name)}">
-                <i class="fas fa-trash" aria-hidden="true"></i>
-              </button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-
-        document.getElementById("totalSounds").textContent =
-          currentSounds.length;
+        document.getElementById("totalSounds").textContent = currentSounds.length;
+        renderAllTabs();
       } catch (err) {
         console.error("Error loading sounds:", err);
         alert("Gagal memuat sounds");
@@ -408,14 +444,209 @@
             select.innerHTML += `<option value="${escapeHtml(f)}">${escapeHtml(f)}/</option>`;
           });
 
-        document.getElementById("foldersCount").textContent =
-          folders.length - 1;
-
-        // Update folder structure display
+        document.getElementById("foldersCount").textContent = folders.length - 1;
         displayFolderStructure(folders);
+        buildFolderTabs(folders);
       } catch (err) {
         console.error("Error loading folders:", err);
       }
+    }
+
+    // Extract folder from file_name
+    function getFolderName(file_name) {
+      if (!file_name || !file_name.includes("/")) return "root";
+      return file_name.split("/")[0];
+    }
+
+    // Build folder tabs navigation
+    function buildFolderTabs(folders) {
+      _currentFolders = folders;
+      const tabList = document.getElementById("folderTabs");
+      const nonRoot = folders.filter((f) => f !== "root");
+
+      // Keep only the "Semua" tab, remove old folder tabs
+      while (tabList.children.length > 1) {
+        tabList.removeChild(tabList.lastChild);
+      }
+
+      nonRoot.forEach((folder) => {
+        const count = currentSounds.filter((s) => getFolderName(s.file_name) === folder).length;
+        const li = document.createElement("li");
+        li.className = "nav-item";
+        li.setAttribute("role", "presentation");
+        const btn = document.createElement("button");
+        btn.className = "nav-link";
+        btn.id = "tab-" + folder;
+        btn.dataset.folder = folder;
+        btn.setAttribute("role", "tab");
+        btn.setAttribute("aria-controls", "panel-" + folder);
+        btn.setAttribute("aria-selected", "false");
+        btn.innerHTML = `<i class="fas fa-folder"></i> ${escapeHtml(folder)} <span class="badge bg-secondary">${count}</span>`;
+        li.appendChild(btn);
+        tabList.appendChild(li);
+      });
+
+      // Update "Semua" badge
+      document.getElementById("badge-all").textContent = currentSounds.length;
+
+      // Event delegation for tab clicks (no inline onclick)
+      tabList.onclick = function(e) {
+        const btn = e.target.closest("[data-folder]");
+        if (btn) switchTab(btn.dataset.folder);
+      };
+    }
+
+    // Render all tab panels
+    function renderAllTabs() {
+      const tabContent = document.getElementById("folderTabContent");
+      const activeFolder = document.querySelector(".folder-tabs .nav-link.active")?.dataset.folder || "__all__";
+
+      // Rebuild folder tabs with correct counts (fixes timing issue)
+      if (_currentFolders.length > 0) {
+        const tabList = document.getElementById("folderTabs");
+        const nonRoot = _currentFolders.filter((f) => f !== "root");
+
+        while (tabList.children.length > 1) {
+          tabList.removeChild(tabList.lastChild);
+        }
+
+        nonRoot.forEach((folder) => {
+          const count = currentSounds.filter((s) => getFolderName(s.file_name) === folder).length;
+          const li = document.createElement("li");
+          li.className = "nav-item";
+          li.setAttribute("role", "presentation");
+          const btn = document.createElement("button");
+          btn.className = "nav-link";
+          btn.id = "tab-" + folder;
+          btn.dataset.folder = folder;
+          btn.setAttribute("role", "tab");
+          btn.setAttribute("aria-controls", "panel-" + folder);
+          btn.setAttribute("aria-selected", "false");
+          btn.innerHTML = `<i class="fas fa-folder"></i> ${escapeHtml(folder)} <span class="badge bg-secondary">${count}</span>`;
+          li.appendChild(btn);
+          tabList.appendChild(li);
+        });
+
+        document.getElementById("badge-all").textContent = currentSounds.length;
+      }
+
+      // Collect existing folder names from current tabs
+      const existingFolders = [];
+      document.querySelectorAll("#folderTabs .nav-link[data-folder]").forEach((btn) => {
+        if (btn.dataset.folder !== "__all__") existingFolders.push(btn.dataset.folder);
+      });
+
+      // Ensure panels exist for each folder
+      existingFolders.forEach((folder) => {
+        let panel = document.getElementById("panel-" + folder);
+        if (!panel) {
+          panel = document.createElement("div");
+          panel.className = "tab-pane fade";
+          panel.id = "panel-" + folder;
+          panel.setAttribute("role", "tabpanel");
+          panel.innerHTML = `
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th width="50"><input type="checkbox" class="select-folder-checkbox" aria-label="Pilih semua" data-folder="${escapeHtml(folder)}" /></th>
+                    <th>Nama</th>
+                    <th>Path</th>
+                    <th width="100">Durasi</th>
+                    <th width="150">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="soundsTable-${escapeHtml(folder)}"></tbody>
+              </table>
+            </div>`;
+          tabContent.appendChild(panel);
+        }
+      });
+
+      // Render sounds into "Semua" tab
+      renderSoundsInto("soundsTable", currentSounds);
+
+      // Render sounds into each folder tab
+      existingFolders.forEach((folder) => {
+        const filtered = currentSounds.filter((s) => getFolderName(s.file_name) === folder);
+        renderSoundsInto("soundsTable-" + folder, filtered);
+      });
+
+      // Re-apply active state
+      switchTab(activeFolder, false);
+    }
+
+    // Render sound rows into a tbody
+    function renderSoundsInto(tbodyId, sounds) {
+      const tbody = document.getElementById(tbodyId);
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      if (sounds.length === 0) {
+        tbody.innerHTML = `
+          <tr><td colspan="5" class="text-center text-muted py-4">
+            <i class="fas fa-music fa-2x mb-3"></i>
+            <p class="mt-2">Folder ini kosong.</p>
+          </td></tr>`;
+        return;
+      }
+
+      sounds.forEach((sound) => {
+        const tr = document.createElement("tr");
+        tr.className = "sound-item";
+        tr.innerHTML = `
+          <td><input type="checkbox" class="sound-checkbox" value="${escapeHtml(sound.id)}"></td>
+          <td><strong>${escapeHtml(sound.name)}</strong></td>
+          <td><small class="text-muted">${escapeHtml(sound.file_name)}</small></td>
+          <td><small class="text-muted">${escapeHtml(sound.duration_formatted || '?')}</small></td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="playSound(${escapeHtml(sound.id)})" aria-label="Putar ${escapeHtml(sound.name)}" title="Putar">
+              <i class="fas fa-play" aria-hidden="true"></i>
+            </button>
+            <a href="/download/sound/${escapeHtml(sound.id)}" class="btn btn-sm btn-outline-success" title="Unduh" aria-label="Unduh ${escapeHtml(sound.name)}">
+              <i class="fas fa-download" aria-hidden="true"></i>
+            </a>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteSound(${escapeHtml(sound.id)})" title="Hapus" aria-label="Hapus ${escapeHtml(sound.name)}">
+              <i class="fas fa-trash" aria-hidden="true"></i>
+            </button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Switch active tab
+    function switchTab(folder, updateUrl) {
+      if (updateUrl === undefined) updateUrl = true;
+
+      // Deactivate all tabs
+      document.querySelectorAll("#folderTabs .nav-link").forEach((btn) => {
+        btn.classList.remove("active");
+        btn.setAttribute("aria-selected", "false");
+      });
+      // Hide all panels
+      document.querySelectorAll("#folderTabContent .tab-pane").forEach((p) => {
+        p.classList.remove("show", "active");
+      });
+
+      // Activate selected
+      const tabBtn = folder === "__all__"
+        ? document.getElementById("tab-all")
+        : document.getElementById("tab-" + folder);
+      const panel = folder === "__all__"
+        ? document.getElementById("panel-all")
+        : document.getElementById("panel-" + folder);
+
+      if (tabBtn) {
+        tabBtn.classList.add("active");
+        tabBtn.setAttribute("aria-selected", "true");
+      }
+      if (panel) {
+        panel.classList.add("show", "active");
+      }
+
+      // Update selectAll checkbox state
+      const selectAll = document.getElementById("selectAll");
+      if (selectAll) selectAll.checked = false;
     }
 
     // Display folder structure
@@ -660,9 +891,12 @@
     // Toggle select all
     function toggleSelectAll() {
       const selectAll = document.getElementById("selectAll");
-      document.querySelectorAll(".sound-checkbox").forEach((cb) => {
-        cb.checked = selectAll.checked;
-      });
+      const activePanel = document.querySelector("#folderTabContent .tab-pane.active");
+      if (activePanel) {
+        activePanel.querySelectorAll(".sound-checkbox").forEach((cb) => {
+          cb.checked = selectAll.checked;
+        });
+      }
     }
 
     // Refresh list
@@ -732,5 +966,83 @@
         updateFileList();
       }
     }
+
+    // Audio control functions
+    async function pauseAudio() {
+      try {
+        const res = await fetch("/api/pause-audio", { method: "POST" });
+        const result = await res.json();
+        if (result.success) {
+          checkAudioStatus();
+        } else {
+          alert("✗ " + result.message);
+        }
+      } catch (err) {
+        alert("Gagal menjeda audio: " + err);
+      }
+    }
+
+    async function resumeAudio() {
+      try {
+        const res = await fetch("/api/resume-audio", { method: "POST" });
+        const result = await res.json();
+        if (result.success) {
+          checkAudioStatus();
+        } else {
+          alert("✗ " + result.message);
+        }
+      } catch (err) {
+        alert("Gagal melanjutkan audio: " + err);
+      }
+    }
+
+    async function stopAudio() {
+      try {
+        const res = await fetch("/api/stop-audio", { method: "POST" });
+        const result = await res.json();
+        if (result.success) {
+          checkAudioStatus();
+        }
+      } catch (err) {
+        alert("Gagal menghentikan audio: " + err);
+      }
+    }
+
+    async function checkAudioStatus() {
+      try {
+        const res = await fetch("/api/audio-status");
+        const result = await res.json();
+        const bar = document.getElementById("audioControlBar");
+        const btnPause = document.getElementById("btnPause");
+        const btnResume = document.getElementById("btnResume");
+        const badge = document.getElementById("audioStatusBadge");
+        const nowPlaying = document.getElementById("audioNowPlaying");
+
+        if (result.success && result.playing) {
+          bar.classList.remove("d-none");
+          nowPlaying.textContent = result.current_sound || "";
+
+          if (result.paused) {
+            badge.className = "badge bg-warning me-2";
+            badge.innerHTML = '<i class="fas fa-pause-circle"></i> Dijeda';
+            btnPause.classList.add("d-none");
+            btnResume.classList.remove("d-none");
+          } else {
+            badge.className = "badge bg-primary me-2";
+            badge.innerHTML = '<i class="fas fa-volume-up"></i> Diputar';
+            btnPause.classList.remove("d-none");
+            btnResume.classList.add("d-none");
+          }
+        } else {
+          bar.classList.add("d-none");
+        }
+      } catch (err) {
+        // silent
+      }
+    }
+
+    // Poll audio status setiap 2 detik
+    setInterval(checkAudioStatus, 2000);
+    checkAudioStatus();
   </script>
 {% endblock %}

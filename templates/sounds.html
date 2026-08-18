@@ -422,6 +422,7 @@
         document.getElementById("foldersCount").textContent = folders.length - 1;
         displayFolderStructure(folders);
         buildFolderTabs(folders);
+        renderAllTabs();
       } catch (err) {
         console.error("Error loading folders:", err);
       }

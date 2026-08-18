@@ -90,31 +90,6 @@
       </a>
     </div>
 
-    <!-- Audio Control Bar -->
-    <div class="card mb-3 d-none" id="audioControlBar">
-      <div class="card-body py-2">
-        <div class="d-flex align-items-center justify-content-between">
-          <div class="d-flex align-items-center">
-            <span class="badge bg-primary me-2" id="audioStatusBadge">
-              <i class="fas fa-volume-up"></i> Diputar
-            </span>
-            <span id="audioNowPlaying" class="text-muted small"></span>
-          </div>
-          <div>
-            <button class="btn btn-sm btn-warning me-1" id="btnPause" onclick="pauseAudio()" title="Jeda">
-              <i class="fas fa-pause"></i> Jeda
-            </button>
-            <button class="btn btn-sm btn-success me-1 d-none" id="btnResume" onclick="resumeAudio()" title="Lanjutkan">
-              <i class="fas fa-play"></i> Lanjutkan
-            </button>
-            <button class="btn btn-sm btn-danger" onclick="stopAudio()" title="Hentikan">
-              <i class="fas fa-stop"></i> Hentikan
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Actions Bar -->
     <div class="card mb-3">
       <div class="card-body">
@@ -594,19 +569,34 @@
       sounds.forEach((sound) => {
         const tr = document.createElement("tr");
         tr.className = "sound-item";
+        tr.dataset.fileName = sound.file_name;
+        tr.dataset.soundId = sound.id;
         tr.innerHTML = `
           <td><input type="checkbox" class="sound-checkbox" value="${escapeHtml(sound.id)}"></td>
           <td><strong>${escapeHtml(sound.name)}</strong></td>
           <td><small class="text-muted">${escapeHtml(sound.file_name)}</small></td>
           <td><small class="text-muted">${escapeHtml(sound.duration_formatted || '?')}</small></td>
-          <td>
-            <button class="btn btn-sm btn-outline-primary" onclick="playSound(${escapeHtml(sound.id)})" aria-label="Putar ${escapeHtml(sound.name)}" title="Putar">
-              <i class="fas fa-play" aria-hidden="true"></i>
-            </button>
-            <a href="/download/sound/${escapeHtml(sound.id)}" class="btn btn-sm btn-outline-success" title="Unduh" aria-label="Unduh ${escapeHtml(sound.name)}">
+          <td class="action-cell">
+            <div class="btn-group-play">
+              <button class="btn btn-sm btn-outline-primary" onclick="playSound(${escapeHtml(sound.id)})" title="Putar">
+                <i class="fas fa-play" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div class="btn-group-transport d-none">
+              <button class="btn btn-sm btn-warning me-1" onclick="pauseAudio()" title="Jeda">
+                <i class="fas fa-pause"></i>
+              </button>
+              <button class="btn btn-sm btn-success me-1 d-none btn-resume" onclick="resumeAudio()" title="Lanjutkan">
+                <i class="fas fa-play"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="stopAudio()" title="Hentikan">
+                <i class="fas fa-stop"></i>
+              </button>
+            </div>
+            <a href="/download/sound/${escapeHtml(sound.id)}" class="btn btn-sm btn-outline-success ms-1" title="Unduh">
               <i class="fas fa-download" aria-hidden="true"></i>
             </a>
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteSound(${escapeHtml(sound.id)})" title="Hapus" aria-label="Hapus ${escapeHtml(sound.name)}">
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteSound(${escapeHtml(sound.id)})" title="Hapus">
               <i class="fas fa-trash" aria-hidden="true"></i>
             </button>
           </td>`;
@@ -1014,29 +1004,38 @@
       try {
         const res = await fetch("/api/audio-status");
         const result = await res.json();
-        const bar = document.getElementById("audioControlBar");
-        const btnPause = document.getElementById("btnPause");
-        const btnResume = document.getElementById("btnResume");
-        const badge = document.getElementById("audioStatusBadge");
-        const nowPlaying = document.getElementById("audioNowPlaying");
 
-        if (result.success && result.playing) {
-          bar.classList.remove("d-none");
-          nowPlaying.textContent = result.current_sound || "";
+        // Reset all rows
+        document.querySelectorAll("#folderTabContent .sound-item").forEach((tr) => {
+          tr.classList.remove("table-active");
+          const gp = tr.querySelector(".btn-group-play");
+          const gt = tr.querySelector(".btn-group-transport");
+          if (gp) gp.classList.remove("d-none");
+          if (gt) gt.classList.add("d-none");
+        });
 
-          if (result.paused) {
-            badge.className = "badge bg-warning me-2";
-            badge.innerHTML = '<i class="fas fa-pause-circle"></i> Dijeda';
-            btnPause.classList.add("d-none");
-            btnResume.classList.remove("d-none");
-          } else {
-            badge.className = "badge bg-primary me-2";
-            badge.innerHTML = '<i class="fas fa-volume-up"></i> Diputar';
-            btnPause.classList.remove("d-none");
-            btnResume.classList.add("d-none");
-          }
-        } else {
-          bar.classList.add("d-none");
+        if (result.success && result.playing && result.current_sound) {
+          // Find the row matching current_sound
+          document.querySelectorAll(`#folderTabContent .sound-item[data-file-name="${CSS.escape(result.current_sound)}"]`).forEach((tr) => {
+            tr.classList.add("table-active");
+            const gp = tr.querySelector(".btn-group-play");
+            const gt = tr.querySelector(".btn-group-transport");
+            const btnResume = tr.querySelector(".btn-resume");
+            if (gp) gp.classList.add("d-none");
+            if (gt) gt.classList.remove("d-none");
+
+            if (result.paused) {
+              if (btnResume) btnResume.classList.remove("d-none");
+              // Hide pause btn when paused
+              const btnPause = gt.querySelector("button:first-child");
+              if (btnPause) btnPause.classList.add("d-none");
+            } else {
+              if (btnResume) btnResume.classList.add("d-none");
+              // Show pause btn when playing
+              const btnPause = gt.querySelector("button:first-child");
+              if (btnPause) btnPause.classList.remove("d-none");
+            }
+          });
         }
       } catch (err) {
         // silent

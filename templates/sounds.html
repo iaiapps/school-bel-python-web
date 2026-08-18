@@ -849,7 +849,9 @@
         const res = await fetch(`/api/sounds/play/${id}`, { method: "POST" });
         const result = await res.json();
 
-        if (!result.success) {
+        if (result.success) {
+          checkAudioStatus();
+        } else {
           alert("✗ " + result.message);
         }
       } catch (err) {

@@ -13,6 +13,7 @@ env/
 database.db
 database.db-*
 bel_sekolah.db
+school.db
 app_settings.json
 
 # Logs
@@ -64,3 +65,5 @@ credentials.json
 tmp/
 temp/
 *.tmp
+
+/sounds

@@ -180,7 +180,7 @@ def check_and_play_new_schedule():
             rows = cur.fetchall()
         
         for jadwal_time, activity, sound_file in rows:
-            if jadwal_time == hhmm:
+            if _time_matches(jadwal_time, hhmm):
                 key = f"{current_day}-{jadwal_time}-{sound_file}-{active_category}"
                 
                 # Use lock for thread-safe access to last_played
@@ -374,6 +374,23 @@ def log_history(day_id, jam, activity, sound_file):
     except Exception as e:
         print(f"[CORE] Gagal menulis history: {e}")
 
+def _time_matches(schedule_time, now_hhmm, tolerance_seconds=60):
+    """Cocokkan waktu jadwal dengan waktu sekarang (toleransi ±tolerance_seconds).
+    
+    Handle midnight wraparound: 23:59 vs 00:00 tetap dianggap cocok.
+    """
+    try:
+        sh, sm = map(int, schedule_time.split(":"))
+        nh, nm = map(int, now_hhmm.split(":"))
+        s_minutes = sh * 60 + sm
+        n_minutes = nh * 60 + nm
+        diff = abs(s_minutes - n_minutes)
+        if diff > 720:  # lebih dari 12 jam, wraparound midnight
+            diff = 1440 - diff
+        return diff <= (tolerance_seconds // 60)
+    except (ValueError, AttributeError):
+        return schedule_time == now_hhmm
+
 def _play_first_missed_schedule(current_day, active_category):
     """Saat boot, putar jadwal pertama (murottal) jika masih dalam window.
     
@@ -505,7 +522,7 @@ def start_scheduler():
             rows = []
 
         for jadwal_time, activity, sound_file in rows:
-            if jadwal_time == hhmm:
+            if _time_matches(jadwal_time, hhmm):
                 key = f"{current_day}-{jadwal_time}-{sound_file}-{active_category}"
                 
                 # Check + add ATOMIK dalam satu lock, SEBELUM diputar.
@@ -537,8 +554,12 @@ def start_scheduler():
                         try:
                             playlist_id = int(sound_file.split(":")[1])
                             print(f"[CORE] Memutar playlist ID {playlist_id} | {activity} ({current_day} {jadwal_time})")
-                            _play_playlist(playlist_id, activity)
-                            # Log hanya untuk playlist, bukan per file
+                            # Run playlist in separate thread agar scheduler tidak blocked
+                            threading.Thread(
+                                target=_play_playlist,
+                                args=(playlist_id, activity),
+                                daemon=True
+                            ).start()
                             log_history(current_day, jadwal_time, activity, sound_file)
                         except (ValueError, IndexError) as e:
                             print(f"[CORE] Invalid playlist format: {sound_file}")

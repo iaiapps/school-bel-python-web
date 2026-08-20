@@ -487,7 +487,7 @@ def _play_first_missed_schedule(current_day, active_category):
 
 def start_scheduler():
     """Start the scheduler - thread safe with double-start prevention"""
-    global last_played, current_playing, scheduler_running, last_active_category, _boot_catchup_done
+    global last_played, current_playing, scheduler_running, last_active_category, _boot_catchup_done, _schedule_status_initialized_date, _last_mark_missed_minute
     
     # Use lock to prevent race condition with double start
     with _scheduler_lock:
@@ -542,7 +542,6 @@ def start_scheduler():
             with _last_played_lock:
                 last_played.clear()
             last_active_category = active_category
-            global _schedule_status_initialized_date
             _schedule_status_initialized_date = None  # Reset when category changes
         
         # Initialize schedule_status untuk hari ini (sekali per hari)

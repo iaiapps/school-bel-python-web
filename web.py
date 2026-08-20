@@ -602,7 +602,7 @@ def history():
             flash("Status jadwal berhasil dikosongkan.", "success")
             return redirect(url_for("history"))
 
-    logs = get_history(limit=50)
+    logs = get_history(limit=25)
     
     # Ambil schedule_status untuk hari ini
     today = datetime.datetime.now().strftime('%Y-%m-%d')

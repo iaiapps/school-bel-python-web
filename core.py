@@ -396,8 +396,10 @@ def log_history(day_id, jam, activity, sound_file):
         print(f"[CORE] Gagal menulis history: {e}")
 
 def _time_matches(schedule_time, now_hhmm):
-    """Cocokkan waktu jadwal dengan waktu sekarang (exact match).
+    """Cocokkan waktu jadwal dengan waktu sekarang.
     
+    Directional diff: cocok jika jadwal SUDAH terjadi atau baru lewat maks 1 menit.
+    Tidak pernah match lebih AWAL dari jadwal (mencegah suara sebelum jadwal).
     Handle midnight wraparound: 23:59 vs 00:00 tetap dianggap cocok.
     """
     try:
@@ -405,10 +407,10 @@ def _time_matches(schedule_time, now_hhmm):
         nh, nm = map(int, now_hhmm.split(":"))
         s_minutes = sh * 60 + sm
         n_minutes = nh * 60 + nm
-        diff = abs(s_minutes - n_minutes)
-        if diff > 720:  # lebih dari 12 jam, wraparound midnight
-            diff = 1440 - diff
-        return diff == 0
+        diff = n_minutes - s_minutes
+        if diff < 0:
+            diff += 1440  # wraparound midnight
+        return 0 <= diff <= 1
     except (ValueError, AttributeError):
         return schedule_time == now_hhmm
 

@@ -12,6 +12,7 @@ from database import init_db, get_history, clear_history, get_user_by_username, 
 from database import get_all_categories, get_active_category, set_active_category, add_category, delete_category, get_schedules_by_category
 from database import get_all_playlists, get_playlist, get_playlist_items, get_playlist_sound_files
 from database import add_playlist, update_playlist, delete_playlist, add_playlist_item, remove_playlist_item, reorder_playlist_items
+from database import clear_schedule_status, get_schedule_status_for_date
 from schedule_templates import get_template, expand_template, list_templates
 from config import Config
 import core
@@ -596,9 +597,18 @@ def history():
             clear_history()
             flash("History berhasil dikosongkan.", "success")
             return redirect(url_for("history"))
+        elif action == "clear_status":
+            clear_schedule_status()
+            flash("Status jadwal berhasil dikosongkan.", "success")
+            return redirect(url_for("history"))
 
     logs = get_history(limit=300)
-    return render_template("history.html", logs=logs)
+    
+    # Ambil schedule_status untuk hari ini
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    schedule_status = get_schedule_status_for_date(today)
+    
+    return render_template("history.html", logs=logs, schedule_status=schedule_status)
 
 # ───── SETTINGS PAGE ─────
 @app.route("/settings", methods=["GET"])

@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import datetime
 from werkzeug.security import generate_password_hash
 
 def _connect(db_path=None):
@@ -110,6 +111,25 @@ def init_db():
             )
         """)
 
+        # Tabel schedule_status (status jadwal per hari)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS schedule_status (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                schedule_date DATE NOT NULL,       -- YYYY-MM-DD
+                schedule_time TIME NOT NULL,       -- HH:MM
+                day_of_week TEXT NOT NULL,         -- Senin, Selasa, ...
+                activity TEXT NOT NULL,            -- Nama kegiatan
+                sound_file TEXT NOT NULL,          -- file atau playlist
+                category TEXT DEFAULT 'normal',    -- kategori jadwal
+                status TEXT DEFAULT 'pending',     -- pending/playing/played/missed
+                played_at TIMESTAMP,               -- kapan diputar (NULL jika belum)
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(schedule_date, schedule_time, category)
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_schedule_status_date ON schedule_status(schedule_date)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_schedule_status_status ON schedule_status(status)")
+
         # Tabel users
         cur.execute("""
             CREATE TABLE IF NOT EXISTS users (
@@ -177,6 +197,103 @@ def clear_history():
         cur = conn.cursor()
         cur.execute("DELETE FROM history")
         conn.commit()
+
+# ==================== SCHEDULE STATUS FUNCTIONS ====================
+
+def init_schedule_status_for_today(day_of_week, category, schedules):
+    """Insert semua jadwal hari ini sebagai pending (jika belum ada)"""
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    
+    with _connect() as conn:
+        cur = conn.cursor()
+        for schedule in schedules:
+            jadwal_time, activity, sound_file = schedule
+            cur.execute("""
+                INSERT OR IGNORE INTO schedule_status 
+                (schedule_date, schedule_time, day_of_week, activity, sound_file, category, status)
+                VALUES (?, ?, ?, ?, ?, ?, 'pending')
+            """, (today, jadwal_time, day_of_week, activity, sound_file, category))
+        conn.commit()
+
+def update_schedule_status(day_of_week, jadwal_time, category, status, played_at=None):
+    """Update status jadwal (pending → playing → played / pending → missed)"""
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    
+    with _connect() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE schedule_status 
+            SET status = ?, played_at = ?, updated_at = datetime('now')
+            WHERE schedule_date = ? AND schedule_time = ? AND category = ?
+        """, (status, played_at, today, jadwal_time, category))
+        conn.commit()
+
+def mark_missed_schedules(day_of_week, category, current_time):
+    """Tandai jadwal yang sudah lewat tapi belum diputar sebagai missed"""
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    
+    with _connect() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE schedule_status 
+            SET status = 'missed', updated_at = datetime('now')
+            WHERE schedule_date = ? AND category = ? 
+            AND status = 'pending' AND schedule_time < ?
+        """, (today, category, current_time))
+        conn.commit()
+
+def get_pending_schedules(day_of_week, category):
+    """Ambil jadwal yang masih pending untuk hari ini"""
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    
+    with _connect() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT schedule_time, activity, sound_file, status
+            FROM schedule_status
+            WHERE schedule_date = ? AND day_of_week = ? AND category = ?
+            AND status IN ('pending', 'playing')
+            ORDER BY schedule_time ASC
+        """, (today, day_of_week, category))
+        return cur.fetchall()
+
+def get_schedule_status_for_date(date=None):
+    """Ambil semua status jadwal untuk tanggal tertentu (default: hari ini)"""
+    if not date:
+        date = datetime.datetime.now().strftime('%Y-%m-%d')
+    
+    with _connect() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, schedule_time, day_of_week, activity, sound_file, 
+                   category, status, played_at, updated_at
+            FROM schedule_status
+            WHERE schedule_date = ?
+            ORDER BY schedule_time ASC
+        """, (date,))
+        return cur.fetchall()
+
+def clear_schedule_status():
+    """Hapus semua schedule_status"""
+    with _connect() as conn:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM schedule_status")
+        conn.commit()
+
+def cleanup_old_status(days_to_keep=30):
+    """Hapus status lebih dari X hari (auto-cleanup saat boot)"""
+    days_to_keep = max(1, int(days_to_keep))  # Pastikan integer positif
+    with _connect() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            DELETE FROM schedule_status 
+            WHERE schedule_date < date('now', ?)
+        """, (f'-{days_to_keep} days',))
+        deleted = cur.rowcount
+        conn.commit()
+        if deleted > 0:
+            print(f"[DB] Cleanup: {deleted} status lama dihapus (> {days_to_keep} hari)")
+        return deleted
 
 # User management functions
 def create_default_admin():

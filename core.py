@@ -5,13 +5,17 @@ import subprocess
 import os
 import threading
 from config import Config
-from database import get_playlist_sound_files, get_playlist_items, get_all_playlists
+from database import get_playlist_sound_files, get_playlist_items, get_all_playlists, init_schedule_status_for_today, update_schedule_status, mark_missed_schedules, cleanup_old_status
 from settings import get_setting
 
 DB_PATH = Config.DB_PATH
 SOUNDS_PATH = Config.UPLOAD_FOLDER
 
 last_active_category = None
+
+# Flag untuk inisialisasi schedule_status (sekali per hari)
+_schedule_status_initialized_date = None
+_last_mark_missed_minute = None
 
 # Mapping hari Inggris ke Indonesia
 HARI_MAP = {
@@ -242,7 +246,7 @@ def _play_schedule_from_dict(schedule_info):
         print(f"[CORE] Jadwal baru: {sound_file} | {activity}")
         play_sound(sound_file, activity)
 
-def _play_playlist(playlist_id, activity="Playlist"):
+def _play_playlist(playlist_id, activity="Playlist", day_of_week=None, jadwal_time=None, category=None):
     """Play all files in a playlist sequentially with schedule checking"""
     global new_schedule_detected, _is_playing_playlist
     
@@ -326,11 +330,20 @@ def _play_playlist(playlist_id, activity="Playlist"):
             _play_schedule_from_dict(schedule_info)
         else:
             print(f"[CORE] Playlist selesai")
+            # Update status ke 'played' jika dari scheduler
+            if day_of_week and jadwal_time and category:
+                try:
+                    played_at = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    update_schedule_status(day_of_week, jadwal_time, category, 'played', played_at)
+                    # Log history setelah playlist benar-benar selesai
+                    log_history(day_of_week, jadwal_time, activity, f"playlist:{playlist_id}")
+                except Exception as e:
+                    print(f"[CORE] Update status played error: {e}")
     finally:
         _playlist_lock.release()
 
 # play sound
-def play_sound(file_name, activity="Manual Play"):
+def play_sound(file_name, activity="Manual Play", day_of_week=None, jadwal_time=None, category=None):
     """Mulai memutar file sound (non-blocking)."""
     file_path = os.path.join(SOUNDS_PATH, file_name)
     
@@ -341,6 +354,14 @@ def play_sound(file_name, activity="Manual Play"):
     try:
         if _play_audio(file_path, name=file_name):
             print(f"[CORE] Memutar: {file_name}")
+            
+            # Update status ke 'played' jika dari scheduler
+            if day_of_week and jadwal_time and category:
+                try:
+                    played_at = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    update_schedule_status(day_of_week, jadwal_time, category, 'played', played_at)
+                except Exception as e:
+                    print(f"[CORE] Update status played error: {e}")
             
             # Catat ke history juga, play manual
             now = datetime.datetime.now()
@@ -374,8 +395,8 @@ def log_history(day_id, jam, activity, sound_file):
     except Exception as e:
         print(f"[CORE] Gagal menulis history: {e}")
 
-def _time_matches(schedule_time, now_hhmm, tolerance_seconds=60):
-    """Cocokkan waktu jadwal dengan waktu sekarang (toleransi ±tolerance_seconds).
+def _time_matches(schedule_time, now_hhmm):
+    """Cocokkan waktu jadwal dengan waktu sekarang (exact match).
     
     Handle midnight wraparound: 23:59 vs 00:00 tetap dianggap cocok.
     """
@@ -387,7 +408,7 @@ def _time_matches(schedule_time, now_hhmm, tolerance_seconds=60):
         diff = abs(s_minutes - n_minutes)
         if diff > 720:  # lebih dari 12 jam, wraparound midnight
             diff = 1440 - diff
-        return diff <= (tolerance_seconds // 60)
+        return diff == 0
     except (ValueError, AttributeError):
         return schedule_time == now_hhmm
 
@@ -442,15 +463,22 @@ def _play_first_missed_schedule(current_day, active_category):
 
         # Putar sekarang
         print(f"[CORE] Boot catch-up: memutar {first_time} {first_activity} ({first_sound})")
+        
+        # Update status ke 'playing'
+        try:
+            update_schedule_status(current_day, first_time, active_category, 'playing')
+        except Exception as e:
+            print(f"[CORE] Update status playing error: {e}")
+        
         if first_sound.startswith("playlist:"):
             try:
                 playlist_id = int(first_sound.split(":")[1])
-                _play_playlist(playlist_id, f"[Boot Catch-up] {first_activity}")
-                log_history(current_day, first_time, f"[Boot Catch-up] {first_activity}", first_sound)
+                _play_playlist(playlist_id, f"[Boot Catch-up] {first_activity}", current_day, first_time, active_category)
+                # log_history sudah dipanggil di dalam _play_playlist setelah selesai
             except (ValueError, IndexError):
                 print(f"[CORE] Boot catch-up: format playlist tidak valid: {first_sound}")
         else:
-            play_sound(first_sound, f"[Boot Catch-up] {first_activity}")
+            play_sound(first_sound, f"[Boot Catch-up] {first_activity}", current_day, first_time, active_category)
 
     except Exception as e:
         print(f"[CORE] Boot catch-up error: {e}")
@@ -467,6 +495,12 @@ def start_scheduler():
         scheduler_running = True
         last_active_category = None
         print("[CORE] Scheduler dimulai.")
+    
+    # Cleanup old schedule_status (>30 hari) saat boot
+    try:
+        cleanup_old_status(30)
+    except Exception as e:
+        print(f"[CORE] Cleanup status error: {e}")
     
     # Boot catch-up: putar jadwal pertama jika masih dalam window (sekali saja per boot)
     if not _boot_catchup_done:
@@ -506,6 +540,37 @@ def start_scheduler():
             with _last_played_lock:
                 last_played.clear()
             last_active_category = active_category
+            global _schedule_status_initialized_date
+            _schedule_status_initialized_date = None  # Reset when category changes
+        
+        # Initialize schedule_status untuk hari ini (sekali per hari)
+        today = now.strftime('%Y-%m-%d')
+        if _schedule_status_initialized_date != today:
+            try:
+                with _connect() as conn:
+                    cur = conn.cursor()
+                    cur.execute("""
+                        SELECT time, activity, sound_file
+                        FROM schedules
+                        WHERE day_of_week = ? AND category = ?
+                    """, (current_day, active_category))
+                    schedules_today = cur.fetchall()
+                
+                # Insert ke schedule_status jika belum ada untuk hari ini
+                if schedules_today:
+                    init_schedule_status_for_today(current_day, active_category, schedules_today)
+                _schedule_status_initialized_date = today
+            except Exception as e:
+                print(f"[CORE] Init schedule_status error: {e}")
+        
+        # Tandai jadwal yang sudah lewat sebagai missed (sekali per menit)
+        current_minute = now.strftime('%Y-%m-%d %H:%M')
+        if _last_mark_missed_minute != current_minute:
+            try:
+                mark_missed_schedules(current_day, active_category, hhmm)
+                _last_mark_missed_minute = current_minute
+            except Exception as e:
+                print(f"[CORE] Mark missed error: {e}")
 
         try:
             with _connect() as conn:
@@ -549,24 +614,30 @@ def start_scheduler():
                         else:
                             stop_sound()
 
+                    # Update status ke 'playing'
+                    try:
+                        update_schedule_status(current_day, jadwal_time, active_category, 'playing')
+                    except Exception as e:
+                        print(f"[CORE] Update status playing error: {e}")
+
                     # Cek apakah sound_file adalah playlist (format: "playlist:<id>")
                     if sound_file.startswith("playlist:"):
                         try:
                             playlist_id = int(sound_file.split(":")[1])
                             print(f"[CORE] Memutar playlist ID {playlist_id} | {activity} ({current_day} {jadwal_time})")
                             # Run playlist in separate thread agar scheduler tidak blocked
+                            # log_history akan dipanggil di dalam _play_playlist setelah selesai
                             threading.Thread(
                                 target=_play_playlist,
-                                args=(playlist_id, activity),
+                                args=(playlist_id, activity, current_day, jadwal_time, active_category),
                                 daemon=True
                             ).start()
-                            log_history(current_day, jadwal_time, activity, sound_file)
                         except (ValueError, IndexError) as e:
                             print(f"[CORE] Invalid playlist format: {sound_file}")
                     else:
                         # Single file
                         print(f"[CORE] Memutar bel: {sound_file} | {activity} ({current_day} {jadwal_time}) [Kategori: {active_category}]")
-                        play_sound(sound_file, activity)
+                        play_sound(sound_file, activity, current_day, jadwal_time, active_category)
 
         # bersihkan set sesekali
         if len(last_played) > 2000:

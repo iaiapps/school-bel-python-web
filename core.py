@@ -5,7 +5,7 @@ import subprocess
 import os
 import threading
 from config import Config
-from database import get_playlist_sound_files, get_playlist_items, get_all_playlists, init_schedule_status_for_today, update_schedule_status, mark_missed_schedules, cleanup_old_status
+from database import get_playlist_sound_files, get_playlist_items, get_all_playlists, init_schedule_status_for_today, update_schedule_status, mark_missed_schedules, cleanup_old_status, get_schedule_status_for_date
 from settings import get_setting
 
 DB_PATH = Config.DB_PATH
@@ -415,14 +415,15 @@ def _time_matches(schedule_time, now_hhmm):
         return schedule_time == now_hhmm
 
 def _play_first_missed_schedule(current_day, active_category):
-    """Saat boot, putar jadwal pertama (murottal) jika masih dalam window.
-    
-    Window: antara jadwal pertama dan jadwal kedua.
-    Contoh:
-      Jadwal 1: 06:00 Murottal
-      Jadwal 2: 07:00 Bel Masuk
-      Boot 06:30 → masih antara 06:00-07:00 → PUTAR murottal
-      Boot 07:05 → sudah lewat 07:00 → SKIP (sekolah sudah mulai)
+    """Saat boot, putar jadwal pertama yang terlewat (khusus murottal).
+
+    Murottal (jadwal pertama dengan activity mengandung 'murottal'):
+      diputar jika waktunya sudah lewat, belum pernah diputar hari ini,
+      dan belum ada jadwal lain SETELAHNYA yang sudah diputar
+      (artinya hari sekolah sudah mulai).
+
+    Jadwal pertama selain murottal: pakai window lama
+    (antara jadwal pertama dan jadwal kedua).
     """
     try:
         with _connect() as conn:
@@ -448,20 +449,45 @@ def _play_first_missed_schedule(current_day, active_category):
             print(f"[CORE] Boot catch-up: jadwal pertama {first_time} belum lewat, skip")
             return
 
-        # Cek apakah masih ada jadwal kedua (sebagai batas window)
-        if len(rows) >= 2:
-            second_time = rows[1][0]
-            # Kalau sudah lewat jadwal kedua, skip (terlalu telat)
-            if now_time >= second_time:
-                print(f"[CORE] Boot catch-up: sudah lewat jadwal kedua {second_time}, skip")
-                return
-
         # Cek apakah sudah diputar (last_played kosong saat fresh boot)
         key = f"{current_day}-{first_time}-{first_sound}-{active_category}"
         with _last_played_lock:
             if key in last_played:
                 print(f"[CORE] Boot catch-up: {first_time} sudah diputar, skip")
                 return
+
+        # Khusus murottal: pakai status DB sebagai sumber kebenaran
+        if 'murottal' in first_activity.lower():
+            try:
+                today = datetime.datetime.now().strftime('%Y-%m-%d')
+                # Pastikan status hari ini ada (race dengan loop scheduler di boot pertama)
+                init_schedule_status_for_today(current_day, active_category, rows)
+                status_by_time = {}
+                for srow in get_schedule_status_for_date(today):
+                    if srow[5] == active_category:
+                        status_by_time[srow[1]] = srow[6]
+
+                # Sudah diputar hari ini, atau sedang benar-benar diputar → skip
+                first_status = status_by_time.get(first_time)
+                if first_status == 'played' or (first_status == 'playing' and _is_audio_playing()):
+                    print(f"[CORE] Boot catch-up: murottal {first_time} sudah diputar, skip")
+                    return
+
+                # Batas: jadwal lain setelah murottal sudah diputar → skip
+                for jadwal_time, _, _ in rows[1:]:
+                    if status_by_time.get(jadwal_time) in ('played', 'playing'):
+                        print(f"[CORE] Boot catch-up: jadwal {jadwal_time} sudah diputar, murottal skip")
+                        return
+            except Exception as e:
+                print(f"[CORE] Boot catch-up: cek status error: {e} (murottal tetap diputar)")
+        else:
+            # Bukan murottal: window lama antara jadwal pertama dan kedua
+            if len(rows) >= 2:
+                second_time = rows[1][0]
+                # Kalau sudah lewat jadwal kedua, skip (terlalu telat)
+                if now_time >= second_time:
+                    print(f"[CORE] Boot catch-up: sudah lewat jadwal kedua {second_time}, skip")
+                    return
 
         # Putar sekarang
         print(f"[CORE] Boot catch-up: memutar {first_time} {first_activity} ({first_sound})")

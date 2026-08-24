@@ -111,6 +111,8 @@
                         <span class="badge bg-success"><i class="fas fa-check"></i> Selesai</span>
                       {% elif row[6] == 'missed' %}
                         <span class="badge bg-danger"><i class="fas fa-times"></i> Terlewat</span>
+                      {% elif row[6] == 'stopped' %}
+                        <span class="badge bg-warning text-dark"><i class="fas fa-stop"></i> Dihentikan</span>
                       {% elif row[6] == 'playing' %}
                         <span class="badge bg-primary"><i class="fas fa-play"></i> Diputar</span>
                       {% else %}

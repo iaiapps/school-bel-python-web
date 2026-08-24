@@ -346,6 +346,12 @@ def _play_playlist(playlist_id, activity="Playlist", day_of_week=None, jadwal_ti
                     log_history(day_of_week, jadwal_time, activity, f"playlist:{playlist_id}")
                 except Exception as e:
                     print(f"[CORE] Update status played error: {e}")
+            elif day_of_week and jadwal_time and category and _externally_stopped:
+                try:
+                    update_schedule_status(day_of_week, jadwal_time, category, 'stopped')
+                    print("[CORE] Playlist terpotong eksternal, status: stopped")
+                except Exception as e:
+                    print(f"[CORE] Update status stopped error: {e}")
     finally:
         _playlist_lock.release()
 

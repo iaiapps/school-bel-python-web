@@ -279,6 +279,7 @@ def _play_playlist(playlist_id, activity="Playlist", day_of_week=None, jadwal_ti
             
             if not is_running:
                 print("[CORE] Scheduler berhenti, playlist dihentikan")
+                _externally_stopped = True   # jangan catat 'played': mati bukan selesai
                 break
             
             file_name = os.path.basename(file_path)
@@ -299,6 +300,7 @@ def _play_playlist(playlist_id, activity="Playlist", day_of_week=None, jadwal_ti
                     
                     if not is_running:
                         print("[CORE] Scheduler berhenti")
+                        _externally_stopped = True   # jangan catat 'played'
                         break
                     
                     # Check for new schedule every 1 second

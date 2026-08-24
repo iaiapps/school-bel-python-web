@@ -68,3 +68,7 @@ temp/
 
 /sounds
 prototype.html
+# Timestamped local backups
+*.bak-*
+*.backup-*
+database.db.backup*

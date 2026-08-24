@@ -80,16 +80,17 @@ def _play_audio(file_path, name=None):
             cmd = _get_audio_command(file_path)
             
             # Start new audio process
-            _current_audio_process = subprocess.Popen(
+            proc = subprocess.Popen(
                 cmd,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )
+            _current_audio_process = proc
             
             if name is not None:
                 current_playing = name
             
-            return True
+            return proc
         except Exception as e:
             print(f"[AUDIO] Gagal memutar {file_path}: {e}")
             return False
@@ -256,6 +257,7 @@ def _play_playlist(playlist_id, activity="Playlist", day_of_week=None, jadwal_ti
         return
     
     schedule_info = None  # Initialize outside loop to persist after break
+    _externally_stopped = False  # True if audio killed from outside (bell/manual)
     
     try:
         files = get_playlist_sound_files(playlist_id)
@@ -283,13 +285,12 @@ def _play_playlist(playlist_id, activity="Playlist", day_of_week=None, jadwal_ti
             
             # Start playing file
             try:
-                _play_audio(file_path)
+                proc = _play_audio(file_path)
                 print(f"[CORE] Memutar: {file_name}")
                 
-                # Wait with periodic checking for new schedule
-                # Use lock for thread-safe access to _current_audio_process
-                with _audio_lock:
-                    process = _current_audio_process
+                # Monitor ONLY our own process; never adopt replacement audio
+                # started by someone else (bell, manual play, next schedule)
+                process = proc
                 
                 while process is not None and process.poll() is None:
                     # Check scheduler_running with lock for thread safety
@@ -311,13 +312,16 @@ def _play_playlist(playlist_id, activity="Playlist", day_of_week=None, jadwal_ti
                         # Play the new schedule AFTER breaking out of loop
                         break
                     
-                    # Re-check process status with lock
-                    with _audio_lock:
-                        process = _current_audio_process
-                
                 if new_schedule_detected:
                     break
-                    
+                
+                # Killed externally (SIGTERM/SIGKILL -> negative returncode)
+                # means someone took over the audio: abort remaining playlist
+                if process is not None and process.returncode is not None and process.returncode < 0:
+                    print(f"[CORE] Playlist dihentikan eksternal (rc={process.returncode}), abort sisa playlist")
+                    _externally_stopped = True
+                    break
+                
                 print(f"[CORE] Selesai: {file_name}")
             except Exception as e:
                 print(f"[CORE] Error memutar {file_name}: {e}")
@@ -330,8 +334,9 @@ def _play_playlist(playlist_id, activity="Playlist", day_of_week=None, jadwal_ti
             _play_schedule_from_dict(schedule_info)
         else:
             print(f"[CORE] Playlist selesai")
-            # Update status ke 'played' jika dari scheduler
-            if day_of_week and jadwal_time and category:
+            # Tandai 'played' HANYA jika benar-benar selesai,
+            # bukan ketika di-interrupt eksternal (jadwal baru / manual play)
+            if day_of_week and jadwal_time and category and not _externally_stopped:
                 try:
                     played_at = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     update_schedule_status(day_of_week, jadwal_time, category, 'played', played_at)

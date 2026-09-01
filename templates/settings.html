@@ -314,7 +314,30 @@
                   </tr>
                 </table>
               </div>
-              <div class="row">
+
+              <h5 class="mt-4"><i class="fas fa-power-off me-2"></i>Riwayat Boot</h5>
+              {% if boot_history %}
+              <table class="table table-sm table-striped mb-0">
+                <thead>
+                  <tr>
+                    <th width="50%">Boot</th>
+                    <th>Shutdown</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for boot in boot_history %}
+                  <tr>
+                    <td>{{ boot.start }}</td>
+                    <td>{{ boot.end }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              {% else %}
+              <div class="text-muted">Tidak ada riwayat boot.</div>
+              {% endif %}
+
+              <div class="row mt-4">
                 <div class="col-md-6 mb-3">
                   <a href="/manage-logs" class="btn btn-info w-100">
                     <i class="fas fa-file-alt me-2"></i>Lihat Log

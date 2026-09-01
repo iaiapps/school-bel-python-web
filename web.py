@@ -610,6 +610,32 @@ def history():
     
     return render_template("history.html", logs=logs, schedule_status=schedule_status)
 
+# ───── BOOT HISTORY ─────
+def get_boot_history(limit=10):
+    """Ambil riwayat boot/shutdown dari journalctl (tidak menyentuh database)"""
+    import subprocess
+    try:
+        result = subprocess.run(
+            ['journalctl', '--list-boots', '-n', str(limit), '--no-pager'],
+            capture_output=True, text=True, timeout=5
+        )
+        boots = []
+        for line in result.stdout.strip().split('\n'):
+            if '—' in line:
+                parts = line.split('—')
+                # Format: -N UUID START — END
+                start_raw = parts[0].strip()
+                # Ambil timestamp (bagian terakhir setelah UUID)
+                start_tokens = start_raw.split()
+                # Cari indeks timestamp: mulai dari token yang mengandung tahun
+                start = ' '.join(start_tokens[-3:]) if len(start_tokens) >= 3 else start_raw
+                end = parts[1].strip() if len(parts) > 1 else 'berjalan'
+                boots.append({'start': start, 'end': end})
+        return boots
+    except Exception as e:
+        print(f"[WEB] Boot history error: {e}")
+        return []
+
 # ───── SETTINGS PAGE ─────
 @app.route("/settings", methods=["GET"])
 @login_required
@@ -618,12 +644,14 @@ def settings():
     system_info = settings_manager.get_system_info()
     access_url = settings_manager.get_access_url()
     qr_exists = os.path.exists(os.path.join(Config.BASE_DIR, 'access-qr.png'))
+    boot_history = get_boot_history(10)
     
     return render_template("settings.html", 
                          settings=settings_data,
                          system_info=system_info,
                          access_url=access_url,
-                         qr_exists=qr_exists)
+                         qr_exists=qr_exists,
+                         boot_history=boot_history)
 
 # ───── SETTINGS: GENERAL ─────
 @app.route("/settings/general", methods=["POST"])

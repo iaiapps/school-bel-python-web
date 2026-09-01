@@ -94,28 +94,57 @@ class SettingsManager:
         return f"http://{hostname}.local:{port}"
     
     def apply_audio_settings(self):
-        """Apply audio settings"""
+        """Apply audio settings — supports PulseAudio and ALSA (backward compatible)"""
         results = []
-        
+
         audio_output = self.get('audio_output', 'auto')
         volume = self.get('volume', 80)
-        
+
         try:
-            # Set audio output (khusus Raspberry Pi)
-            if os.path.exists('/proc/device-tree/model') and 'Raspberry Pi' in open('/proc/device-tree/model').read():
-                if audio_output == 'hdmi':
-                    os.system("amixer cset numid=3 2 > /dev/null 2>&1")
-                elif audio_output == 'headphone':
-                    os.system("amixer cset numid=3 1 > /dev/null 2>&1")
-                else:  # auto
-                    os.system("amixer cset numid=3 0 > /dev/null 2>&1")
-            
-            # Set volume
-            os.system(f"amixer set 'PCM' {volume}% > /dev/null 2>&1")
-            results.append(('audio', True, f"Audio output: {audio_output}, Volume: {volume}%"))
+            # ── 1. Set volume ──
+            volume_set = False
+
+            # Try PulseAudio first (aplay/mpg123 often route through PA)
+            if os.system("pactl info > /dev/null 2>&1") == 0:
+                if os.system(f"pactl set-sink-volume @DEFAULT_SINK@ {volume}% > /dev/null 2>&1") == 0:
+                    volume_set = True
+                    results.append(('volume', True, f"Volume: {volume}% (PulseAudio)"))
+
+            # Fallback to ALSA — try 'Master' (newer kernel) then 'PCM' (older kernel)
+            if not volume_set:
+                for ctrl in ['Master', 'PCM']:
+                    if os.system(f"amixer set '{ctrl}' {volume}% > /dev/null 2>&1") == 0:
+                        volume_set = True
+                        results.append(('volume', True, f"Volume: {volume}% (ALSA {ctrl})"))
+                        break
+
+            if not volume_set:
+                results.append(('volume', False, "Gagal set volume: tidak ada kontrol yang cocok"))
+
+            # ── 2. Set audio output (Raspberry Pi only) ──
+            if os.path.exists('/proc/device-tree/model'):
+                with open('/proc/device-tree/model', 'r') as f:
+                    model = f.read()
+                if 'Raspberry Pi' in model:
+                    # Detect apakah numid=3 output selector atau volume control
+                    # Kernel lama: numid=3 = audio output selector (0=auto,1=hp,2=hdmi)
+                    # Kernel baru (vc4): numid=3 = Master Playback Volume
+                    check = os.popen("amixer cget numid=3 2>&1").read()
+                    if 'Playback Volume' not in check:
+                        # numid=3 adalah output selector (kernel lama)
+                        numid_map = {'auto': '0', 'headphone': '1', 'hdmi': '2'}
+                        val = numid_map.get(audio_output, '0')
+                        os.system(f"amixer cset numid=3 {val} > /dev/null 2>&1")
+                        results.append(('output', True, f"Output: {audio_output}"))
+                    else:
+                        # numid=3 = Master Volume, tidak ada hardware output selector
+                        results.append(('output', True, f"Output: auto (hardware default)"))
+
+            if not results:
+                results.append(('audio', True, f"Audio output: {audio_output}, Volume: {volume}%"))
         except Exception as e:
             results.append(('audio', False, str(e)))
-        
+
         return results
     
     def generate_qr_code(self, output_file='access-qr.png'):

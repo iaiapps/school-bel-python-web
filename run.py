@@ -2,7 +2,7 @@ import threading
 import sys
 from database import init_db
 from config import Config
-from settings import get_setting
+from settings import get_setting, settings_manager
 import web
 import core
 
@@ -24,6 +24,13 @@ if __name__ == "__main__":
     # Inisialisasi database
     print("[RUN] Inisialisasi database...")
     init_db()
+    
+    # Apply audio settings saat boot (volume + output)
+    try:
+        settings_manager.apply_audio_settings()
+        print("[RUN] ✓ Audio settings applied")
+    except Exception as e:
+        print(f"[RUN] Audio settings error: {e}")
     
     # Jalankan core scheduler di thread terpisah
     t1 = threading.Thread(target=start_core, daemon=True)

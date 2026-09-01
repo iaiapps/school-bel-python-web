@@ -616,7 +616,7 @@ def get_boot_history(limit=10):
     import subprocess
     try:
         result = subprocess.run(
-            ['journalctl', '--list-boots', '-n', str(limit), '--no-pager'],
+            ['journalctl', '--list-boots', '--no-pager'],
             capture_output=True, text=True, timeout=5
         )
         boots = []
@@ -631,7 +631,8 @@ def get_boot_history(limit=10):
                 start = ' '.join(start_tokens[-3:]) if len(start_tokens) >= 3 else start_raw
                 end = parts[1].strip() if len(parts) > 1 else 'berjalan'
                 boots.append({'start': start, 'end': end})
-        return boots
+        # Ambil yang terakhir (terbaru) saja
+        return boots[-limit:] if len(boots) > limit else boots
     except Exception as e:
         print(f"[WEB] Boot history error: {e}")
         return []

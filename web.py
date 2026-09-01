@@ -631,8 +631,10 @@ def get_boot_history(limit=10):
                 start = ' '.join(start_tokens[-3:]) if len(start_tokens) >= 3 else start_raw
                 end = parts[1].strip() if len(parts) > 1 else 'berjalan'
                 boots.append({'start': start, 'end': end})
-        # Ambil yang terakhir (terbaru) saja
-        return boots[-limit:] if len(boots) > limit else boots
+        # Ambil yang terakhir (terbaru) saja, balik urutan (terbaru di atas)
+        result = boots[-limit:] if len(boots) > limit else boots
+        result.reverse()
+        return result
     except Exception as e:
         print(f"[WEB] Boot history error: {e}")
         return []
